@@ -1,0 +1,1 @@
+Validation trigger for the approved v0.7 functional implementation. This branch exists only to exercise the repository validation workflow against develop.
