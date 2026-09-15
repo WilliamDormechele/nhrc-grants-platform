@@ -1,30 +1,22 @@
 package org.nhrc.grants.config
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.config.Customizer.withDefaults
+import org.springframework.core.env.Environment
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
-class SecurityConfig(
-    @Value("\${nhrc.auth.mode:development}") private val authMode: String
-) {
+class SecurityConfig(private val environment: Environment) {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        val mode = environment.getProperty("nhrc.auth.mode", "development")
         http.csrf { it.disable() }
-        http.authorizeHttpRequests {
-            it.requestMatchers("/actuator/health", "/api/public/**").permitAll()
-            if (authMode == "development") {
-                it.anyRequest().permitAll()
-            } else {
-                it.anyRequest().authenticated()
-            }
+        http.authorizeHttpRequests { auth ->
+            auth.requestMatchers("/api/public/**", "/actuator/health/**").permitAll()
+            if (mode == "development") auth.anyRequest().permitAll() else auth.anyRequest().authenticated()
         }
-        if (authMode != "development") {
-            http.oauth2ResourceServer { it.jwt(withDefaults()) }
-        }
+        if (mode != "development") http.oauth2ResourceServer { it.jwt { } }
         return http.build()
     }
 }

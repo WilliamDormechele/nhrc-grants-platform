@@ -1,27 +1,22 @@
 # NHRC Grants Platform
 
-Institutional grant lifecycle management platform for the Navrongo Health Research Centre (NHRC).
+Institutional grant-management platform for Navrongo Health Research Centre.
 
-## Scope
+The implementation follows the approved v0.7 institutional operations design and covers the complete funding lifecycle from opportunity discovery through award closeout and impact, with dedicated Finance & Accounts, Procurement, Laboratory, Research Governance, Administration, IT & Security and protected technical administration capabilities.
 
-The platform is intended to support the full institutional research funding lifecycle:
+## Local development
 
-- Executive oversight and portfolio intelligence
-- Opportunity discovery and eligibility assessment
-- Proposal development, costing, review and approvals
-- Award setup, contracts, due diligence, partner and subaward management
-- Finance and accounts oversight
-- Procurement and grant-linked laboratory oversight
-- Ethics, regulatory and compliance linkage
-- Reporting, outputs, impact and closeout
-- Researcher, partner, funder and institutional master data
-- Personal work queues, notifications and calendars
-- Administration, records management, IT operations, security and audit
+1. Copy `.env.example` to `.env` and set local-only secrets.
+2. Start Docker Desktop.
+3. Run `docker compose build` then `docker compose up -d`.
+4. Web: http://localhost:3000
+5. API status: http://localhost:8080/api/public/status
+6. Health: http://localhost:8080/actuator/health
 
-## Development status
+PostgreSQL uses host port 5436 by default to avoid collisions with other NHRC development stacks. Secrets, local storage, keys and backups are excluded from source control.
 
-Initial production implementation scaffold.
+## Development branch
 
-## Security
+Active implementation is maintained on `develop` and promoted to `main` through reviewed pull requests after build, migration and functional validation.
 
-Real credentials, passwords, signing keys and environment-specific secrets must never be committed to this repository. Use local environment files or an approved secret store. See `.env.example` and `.gitignore`.
+See `docs/architecture/ARCHITECTURE.md` and `docs/architecture/FUNCTIONAL_IMPLEMENTATION.md`.
