@@ -110,8 +110,9 @@ export function FormDialog({title,fields,record,onSave,onClose,submitLabel="Save
   },[dirty]);
   const submit=async(event:FormEvent<HTMLFormElement>)=>{
     event.preventDefault();if(busy)return;setBusy(true);setError("");
-    try{await onSave(formValues(fields,values));setDirty(false);onClose();}
-    catch(ex){setError((ex as Error).message);}
+    setDirty(false);
+    try{await onSave(formValues(fields,values));onClose();}
+    catch(ex){setDirty(true);setError((ex as Error).message);}
     finally{setBusy(false);}
   };
   return <Modal title={title} onClose={close} busy={busy} wide>
