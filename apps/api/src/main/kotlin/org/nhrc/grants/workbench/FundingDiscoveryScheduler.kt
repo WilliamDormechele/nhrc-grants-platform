@@ -11,7 +11,7 @@ class FundingDiscoveryScheduler(
     private val discovery: FundingDiscoveryService,
     private val environment: Environment
 ) {
-    @Scheduled(fixedDelayString = "${GRANT_DISCOVERY_POLL_MS:3600000}")
+    @Scheduled(fixedDelayString = "\${GRANT_DISCOVERY_POLL_MS:3600000}")
     fun runDueProfiles() {
         if(environment.getProperty("APP_ENV","development")=="test") return
         if(!environment.getProperty("GRANT_DISCOVERY_AUTO_ENABLED","true").toBoolean()) return
