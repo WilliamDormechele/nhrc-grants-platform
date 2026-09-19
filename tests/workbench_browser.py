@@ -70,6 +70,8 @@ with sync_playwright() as p:
         assert page.locator(".brandmark img").evaluate("image => image.complete && image.naturalWidth > 0")
         choose(page, "grants")
         passed("Account selection and official institutional logo load correctly")
+        expect(page.get_by_role("heading", name="Grants & Pre-Award Dashboard", exact=True)).to_be_visible()
+        passed("Grants Officer receives a dedicated role dashboard")
         grants_names = [name.strip() for name in page.locator("nav .navbtn").all_text_contents()]
         assert "Opportunity Intelligence" in grants_names and "Finance Dashboard" not in grants_names
         passed("Grants Officer navigation is role-specific")
@@ -85,7 +87,8 @@ with sync_playwright() as p:
         expect(page.get_by_text("Live funding-source APIs", exact=True)).to_be_visible()
         expect(page.get_by_text("Grants.gov", exact=True)).to_be_visible()
         expect(page.get_by_role("button", name="Search internet funding calls", exact=True)).to_be_visible()
-        passed("Opportunity Intelligence exposes the live internet funding-source integrations")
+        expect(page.get_by_text("Automatic funding discovery", exact=True)).to_be_visible()
+        passed("Opportunity Intelligence exposes live and automatic funding-source discovery")
         page.get_by_role("button", name="Add funding call", exact=True).click()
         dialog = page.get_by_role("dialog")
         title = "CI browser funding call " + uuid4().hex[:8]
@@ -132,6 +135,7 @@ with sync_playwright() as p:
         expect(page.get_by_role("button", name="Assess partner", exact=True)).to_be_visible()
         passed("Due diligence is connected from institutional navigation")
         choose(page, "finance")
+        expect(page.get_by_role("heading", name="Finance Dashboard", exact=True)).to_be_visible()
         finance_names = [name.strip() for name in page.locator("nav .navbtn").all_text_contents()]
         assert "Finance Dashboard" in finance_names and "Opportunity Intelligence" not in finance_names
         passed("Finance navigation differs from Grants navigation")
@@ -154,12 +158,21 @@ with sync_playwright() as p:
         passed("Calendar provides senior month, week and agenda views")
 
         choose(page, "uat_admin")
+        expect(page.get_by_role("heading", name="Administration Dashboard", exact=True)).to_be_visible()
         admin_names = [name.strip() for name in page.locator("nav .navbtn").all_text_contents()]
         assert "Users & Roles" in admin_names and "Organisation Structure" in admin_names
         assert "Superadmin Console" not in admin_names
         passed("Business Administrator receives administration workspaces without Superadmin controls")
+        navigate(page, "Forms & Fields")
+        expect(page.get_by_role("heading", name="Forms & Fields", exact=True)).to_be_visible()
+        assert page.locator(".template-card").count() >= 20
+        navigate(page, "Templates")
+        expect(page.get_by_role("heading", name="Templates", exact=True)).to_be_visible()
+        assert page.locator(".template-card").count() >= 10
+        passed("Versioned lifecycle forms and templates render in Administration")
 
         choose(page, "uat_superadmin")
+        expect(page.get_by_role("heading", name="Superadmin Oversight Dashboard", exact=True)).to_be_visible()
         super_names = [name.strip() for name in page.locator("nav .navbtn").all_text_contents()]
         assert len(super_names) > len(grants_names) and "Superadmin Console" in super_names and "Finance Dashboard" in super_names
         passed("Superadmin can see the complete feature navigation")
