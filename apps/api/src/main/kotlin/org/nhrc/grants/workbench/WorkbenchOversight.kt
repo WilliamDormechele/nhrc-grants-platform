@@ -9,7 +9,7 @@ import java.util.UUID
 
 @Service
 class WorkbenchOversight(private val store: WorkbenchStore) {
-    private fun staff(actor: GrantActor)=actor.hasAny(WorkbenchCatalogue.allBusiness-"RESEARCHER")
+    private fun staff(actor: GrantActor)=actor.hasAny(WorkbenchCatalogue.allBusiness-WorkbenchCatalogue.researchRoles)
     private fun requireAward(id: UUID,actor: GrantActor,lock: Boolean=false): GrantRow {
         actor.requireAny(WorkbenchCatalogue.allBusiness)
         val row=store.one("awards",id,lock)
@@ -53,9 +53,55 @@ class WorkbenchOversight(private val store: WorkbenchStore) {
         actor.requireAny(WorkbenchCatalogue.allBusiness)
         val work=store.rows("""select a.id,a.reference,a.title,a.stage,a.deadline_at,'ASSIGNMENT' work_type from applications a join application_assignments x on x.application_id=a.id where x.researcher_id=? and x.response='PENDING' and a.stage='ASSIGNED'
             union all select a.id,a.reference,a.title,a.stage,a.deadline_at,r.review_type work_type from applications a join application_reviews r on r.application_id=a.id where r.reviewer_id=? and r.status='PENDING' and r.content_revision=a.content_revision""",actor.id,actor.id)
-        val calendar=store.rows("""select r.id,r.title,r.due_date,'deliverables' resource_key,a.reference award_reference from award_deliverables r join awards a on a.id=r.award_id where (r.owner_user_id=? or a.principal_investigator_id=?) and r.status not in ('ACCEPTED','COMPLETED')
-            union all select r.id,r.report_type title,r.due_date,'reports' resource_key,a.reference award_reference from reports r join awards a on a.id=r.award_id where (r.owner_user_id=? or a.principal_investigator_id=?) and r.status not in ('ACCEPTED','COMPLETED') order by due_date nulls last limit 200""",actor.id,actor.id,actor.id,actor.id)
-        return mapOf("work" to work,"calendar" to calendar,"calendarLimit" to 200,"notifications" to store.rows("select id,title,message,entity_type,entity_id,read_at,created_at from notifications where user_id=? order by created_at desc limit 100",actor.id))
+        val all=staff(actor)
+        val calendar=store.rows("""
+            select a.id,a.title,a.deadline_at::date due_date,'applications' resource_key,a.reference award_reference,
+                   'APPLICATION_DEADLINE' event_type,a.stage status
+            from applications a
+            where a.deadline_at is not null and (? or a.lead_researcher_id=? or a.owner_user_id=?)
+              and a.stage not in ('OUTCOME_RECORDED','AWARDED','CLOSED')
+            union all
+            select r.id,r.title,r.due_date,'deliverables' resource_key,a.reference award_reference,
+                   'DELIVERABLE' event_type,r.status
+            from award_deliverables r join awards a on a.id=r.award_id
+            where (? or r.owner_user_id=? or a.principal_investigator_id=?)
+              and r.status not in ('ACCEPTED','COMPLETED')
+            union all
+            select r.id,r.report_type||' report' title,r.due_date,'reports' resource_key,a.reference award_reference,
+                   'REPORT' event_type,r.status
+            from reports r join awards a on a.id=r.award_id
+            where (? or r.owner_user_id=? or a.principal_investigator_id=?)
+              and r.status not in ('ACCEPTED','COMPLETED')
+            union all
+            select p.id,p.item_description title,p.planned_date due_date,'procurement-plans' resource_key,a.reference award_reference,
+                   'PROCUREMENT' event_type,p.status
+            from procurement_plans p join awards a on a.id=p.award_id
+            where p.planned_date is not null and (? or a.principal_investigator_id=?)
+              and p.status not in ('CLOSED','COMPLETED')
+            union all
+            select l.id,l.name||' maintenance' title,l.maintenance_due_date due_date,'maintenance' resource_key,a.reference award_reference,
+                   'LAB_MAINTENANCE' event_type,l.status
+            from laboratory_items l join awards a on a.id=l.award_id
+            where l.maintenance_due_date is not null and (? or a.principal_investigator_id=?)
+            union all
+            select l.id,l.name||' calibration' title,l.calibration_due_date due_date,'maintenance' resource_key,a.reference award_reference,
+                   'LAB_CALIBRATION' event_type,l.status
+            from laboratory_items l join awards a on a.id=l.award_id
+            where l.calibration_due_date is not null and (? or a.principal_investigator_id=?)
+            union all
+            select c.id,c.compliance_type||' renewal' title,coalesce(c.renewal_due_date,c.expiry_date) due_date,'compliance' resource_key,a.reference award_reference,
+                   'COMPLIANCE' event_type,c.status
+            from compliance_records c join awards a on a.id=c.award_id
+            where coalesce(c.renewal_due_date,c.expiry_date) is not null and (? or a.principal_investigator_id=?)
+            union all
+            select a.id,a.title||' award end' title,a.end_date due_date,'awards' resource_key,a.reference award_reference,
+                   'AWARD_END' event_type,a.status
+            from awards a
+            where a.end_date is not null and a.status in ('ACTIVE','CLOSING') and (? or a.principal_investigator_id=?)
+            order by due_date nulls last,event_type,title
+            limit 500
+        """,all,actor.id,actor.id,all,actor.id,actor.id,all,actor.id,actor.id,all,actor.id,all,actor.id,all,actor.id,all,actor.id,all,actor.id)
+        return mapOf("work" to work,"calendar" to calendar,"calendarLimit" to 500,"calendarScope" to if(all) "INSTITUTIONAL" else "ASSIGNED","notifications" to store.rows("select id,title,message,entity_type,entity_id,read_at,created_at from notifications where user_id=? order by created_at desc limit 100",actor.id))
     }
     @Transactional
     fun readNotification(id: UUID,actor: GrantActor): GrantRow {
