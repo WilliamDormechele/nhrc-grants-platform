@@ -1,5 +1,7 @@
 package org.nhrc.grants.workbench
 
+import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.net.URI
@@ -129,7 +131,7 @@ object GrantRules {
     fun requireAction(action: String, stage: String, roles: Set<String>): GrantTransition {
         val definition=appActions[action] ?: throw IllegalArgumentException("Unknown application action")
         require(stage in definition.from) { "${definition.label} is not available at stage $stage" }
-        require(roles.any { it in definition.roles }) { "Your role does not permit this action" }
+        if(roles.none { it in definition.roles }) throw ResponseStatusException(HttpStatus.FORBIDDEN,"Your role does not permit this action")
         return definition
     }
 }
