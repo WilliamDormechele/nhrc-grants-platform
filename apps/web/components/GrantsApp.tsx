@@ -1,7 +1,7 @@
 "use client";
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {ChevronDown,Menu} from "lucide-react";
-import {groups,groupsForRoles} from "./config";
+import {groupsForRoles} from "./config";
 import {Actor,Identity,Resource,Row,human,makeClient} from "./workbench/client";
 import {WorkbenchContext,useLoad,useWorkbench} from "./workbench/context";
 import {ErrorBox,Loading,Notice,Stat} from "./workbench/controls";
