@@ -67,13 +67,13 @@ class WorkbenchRecords(private val store: WorkbenchStore, private val auth: Work
         return store.rows("select e.id,e.action,e.note,e.occurred_at,u.display_name actor,e.previous_value,e.new_value from grant_workspace_events e join users u on u.id=e.actor_user_id where e.entity_type=? and e.entity_id=? order by e.occurred_at desc limit 100",key,id).map(store::wire)
     }
     fun lookups(key: String,actor: GrantActor,query: String): GrantRow {
-        require(query.length<=200) { "Search is too long" };actor.requireAny(WorkbenchCatalogue.allBusiness)
+        require(query.length<=200) { "Search is too long" };actor.requireAny(WorkbenchCatalogue.platformReaders)
         val result=when(key) {
             "users" -> store.rows("""select u.id,u.display_name label,u.job_title,
                 coalesce((select jsonb_agg(distinct r.code) from user_roles ur join roles r on r.id=ur.role_id join organisation_units ou on ou.id=ur.scope_id where ur.user_id=u.id and ur.scope_type='INSTITUTION' and ou.code='NHRC' and (ur.valid_from is null or ur.valid_from<=now()) and (ur.valid_until is null or ur.valid_until>now())),'[]'::jsonb) roles
                 from users u where u.active and u.display_name ilike ? order by u.display_name,u.id limit 201""","%$query%")
             "awards" -> {
-                val staff=actor.hasAny(WorkbenchCatalogue.allBusiness-"RESEARCHER")
+                val staff=actor.hasAny(WorkbenchCatalogue.platformReaders-"RESEARCHER")
                 store.rows("select id,reference || ' | ' || title label,currency,status from awards where title ilike ? and (? or principal_investigator_id=?) order by title,id limit 201","%$query%",staff,actor.id)
             }
             else -> {
@@ -118,7 +118,7 @@ class WorkbenchRecords(private val store: WorkbenchStore, private val auth: Work
                 "users" -> require(store.rows("select id from users where id=? and active",target).isNotEmpty()) { "${f.label} is not an active user" }
                 "awards" -> {
                     val award=store.one("awards",target)
-                    if(!actor.hasAny(WorkbenchCatalogue.allBusiness-"RESEARCHER")&&store.uuid(award,"principal_investigator_id")!=actor.id)throw ResponseStatusException(HttpStatus.FORBIDDEN,"You are not assigned to this award")
+                    if(!actor.hasAny(WorkbenchCatalogue.platformReaders-"RESEARCHER")&&store.uuid(award,"principal_investigator_id")!=actor.id)throw ResponseStatusException(HttpStatus.FORBIDDEN,"You are not assigned to this award")
                     require(award["status"] !in setOf("CLOSED","CANCELLED")) { "This award is closed" }
                     values["currency"]?.let { require(it==award["currency"]) { "The currency must match the award; no automatic currency conversion is applied" } }
                 }
