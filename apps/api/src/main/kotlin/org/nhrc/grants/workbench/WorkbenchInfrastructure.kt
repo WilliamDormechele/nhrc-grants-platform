@@ -117,11 +117,11 @@ class WorkbenchAuth(private val store: WorkbenchStore, private val environment: 
     fun canRead(resource: GrantResource, row: GrantRow, actor: GrantActor): Boolean {
         if(!actor.hasAny(resource.readers)) return false
         if(resource.key=="support") return actor.id==store.uuid(row,"requester_id") || actor.hasAny(setOf("ADMIN"))
-        if(resource.key=="applications" && !actor.hasAny(resource.readers - "RESEARCHER")) {
+        if(resource.key=="applications" && !actor.hasAny(resource.readers - WorkbenchCatalogue.researchRoles)) {
             if(actor.id in listOf(store.uuid(row,"lead_researcher_id"),store.uuid(row,"owner_user_id"))) return true
             return store.rows("select id from application_reviews where application_id=? and reviewer_id=?",store.uuid(row,"id"),actor.id).isNotEmpty()
         }
-        if(resource.awardColumn != null && !actor.hasAny(resource.readers - "RESEARCHER")) {
+        if(resource.awardColumn != null && !actor.hasAny(resource.readers - WorkbenchCatalogue.researchRoles)) {
             val awardId=store.uuid(row,resource.awardColumn) ?: return false
             return store.uuid(store.one("awards",awardId),"principal_investigator_id")==actor.id
         }
