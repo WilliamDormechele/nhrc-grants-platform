@@ -12,7 +12,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/workbench")
-class WorkbenchController(private val auth: WorkbenchAuth,private val records: WorkbenchRecords,private val applications: WorkbenchApplications,private val discovery: FundingDiscoveryService,private val oversight: WorkbenchOversight,private val operations: WorkbenchOperations,private val dashboard: WorkbenchDashboard) {
+class WorkbenchController(private val auth: WorkbenchAuth,private val records: WorkbenchRecords,private val applications: WorkbenchApplications,private val discovery: FundingDiscoveryService,private val oversight: WorkbenchOversight,private val operations: WorkbenchOperations,private val dashboard: WorkbenchDashboard,private val configuration: WorkbenchConfiguration) {
     @GetMapping("/identity") fun identity(request: HttpServletRequest)=auth.identity(request)
     @GetMapping("/catalogue") fun catalogue(request: HttpServletRequest)=records.catalogue(auth.actor(request))
     @GetMapping("/records/{key}") fun list(@PathVariable key: String,@RequestParam(defaultValue="") q: String,@RequestParam(defaultValue="0") page: Int,@RequestParam(defaultValue="50") size: Int,request: HttpServletRequest)=records.list(key,auth.actor(request),q,page,size)
@@ -37,6 +37,12 @@ class WorkbenchController(private val auth: WorkbenchAuth,private val records: W
     @GetMapping("/opportunities/{id}/matches") fun matches(@PathVariable id: UUID,request: HttpServletRequest)=discovery.matches(id,auth.actor(request))
     @GetMapping("/operations/{key}") fun operations(@PathVariable key: String,request: HttpServletRequest)=operations.list(key,auth.actor(request))
     @GetMapping("/dashboard") fun dashboard(request: HttpServletRequest)=dashboard.dashboard(auth.actor(request))
+    @GetMapping("/configuration/forms") fun forms(request: HttpServletRequest)=configuration.forms(auth.actor(request))
+    @GetMapping("/configuration/templates") fun templates(request: HttpServletRequest)=configuration.templates(auth.actor(request))
+    @PatchMapping("/configuration/forms/{id}") fun updateForm(@PathVariable id: UUID,@RequestBody input: GrantRecordInput,request: HttpServletRequest)=configuration.updateForm(id,input,auth.actor(request))
+    @PatchMapping("/configuration/templates/{id}") fun updateTemplate(@PathVariable id: UUID,@RequestBody input: GrantRecordInput,request: HttpServletRequest)=configuration.updateTemplate(id,input,auth.actor(request))
+    @GetMapping("/configuration/search-profiles") fun searchProfiles(request: HttpServletRequest)=configuration.searchProfiles(auth.actor(request))
+    @PatchMapping("/configuration/search-profiles/{id}") fun updateSearchProfile(@PathVariable id: UUID,@RequestBody input: GrantRecordInput,request: HttpServletRequest)=configuration.updateSearchProfile(id,input,auth.actor(request))
     @GetMapping("/summary") fun summary(request: HttpServletRequest)=oversight.summary(auth.actor(request))
     @GetMapping("/finance") fun finance(request: HttpServletRequest)=oversight.finance(auth.actor(request))
     @GetMapping("/personal") fun personal(request: HttpServletRequest)=oversight.personal(auth.actor(request))
