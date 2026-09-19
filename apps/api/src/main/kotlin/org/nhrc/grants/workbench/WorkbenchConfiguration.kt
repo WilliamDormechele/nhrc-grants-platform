@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus
 import java.util.UUID
 
 @Service
-class WorkbenchConfiguration(private val store: WorkbenchStore) {
+class WorkbenchConfiguration(private val store: WorkbenchStore,private val discovery: FundingDiscoveryService) {
     fun forms(actor: GrantActor): GrantRow {
         actor.requireAny(setOf("ADMIN","SUPERADMIN"))
         return mapOf("items" to store.rows("""select id,code,name,entity_type,version_no,schema_json,active,created_at
@@ -44,6 +44,17 @@ class WorkbenchConfiguration(private val store: WorkbenchStore) {
         actor.requireAny(setOf("GRANTS_OFFICER","ADMIN","SUPERADMIN"))
         return mapOf("items" to store.rows("""select id,name,source_code,search_term,enabled,interval_hours,last_run_at,next_run_at,last_status,last_message
             from funding_search_profiles order by name"""))
+    }
+
+    fun runSearchProfile(id: UUID,actor: GrantActor): GrantRow {
+        actor.requireAny(setOf("GRANTS_OFFICER","ADMIN"))
+        val profile=store.one("funding_search_profiles",id,true)
+        if(profile["enabled"]!=true) throw ResponseStatusException(HttpStatus.CONFLICT,"Enable this search profile before running it")
+        val result=discovery.importAutomated(FundingSearchInput(profile["source_code"].toString(),profile["search_term"].toString()),actor)
+        val hours=(profile["interval_hours"] as Number).toInt()
+        store.jdbc.update("""update funding_search_profiles set last_run_at=now(),next_run_at=now()+(?||' hours')::interval,
+            last_status='COMPLETED',last_message=?,updated_at=now() where id=?""",hours,result["message"]?.toString()?.take(1000),id)
+        return result
     }
 
     fun updateSearchProfile(id: UUID,input: GrantRecordInput,actor: GrantActor): GrantRow {
