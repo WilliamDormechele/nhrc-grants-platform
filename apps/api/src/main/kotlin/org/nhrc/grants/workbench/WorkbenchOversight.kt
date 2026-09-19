@@ -30,18 +30,24 @@ class WorkbenchOversight(private val store: WorkbenchStore) {
     }
     fun finance(actor: GrantActor): GrantRow {
         actor.requireAny(WorkbenchCatalogue.allBusiness)
+        // Never relabel historical foreign-currency transactions as the award currency.
         val position=store.rows("""select a.id,a.reference,a.title,a.currency,a.nhrc_allocation approved_budget,
             coalesce(r.cash,0) verified_receipts,coalesce(e.spent,0) verified_expenditure,coalesce(c.committed,0) open_commitments,
-            a.nhrc_allocation-coalesce(e.spent,0)-coalesce(c.committed,0) uncommitted_budget,r.latest_verification
+            a.nhrc_allocation-coalesce(e.spent,0)-coalesce(c.committed,0) uncommitted_budget,r.latest_verification,
+            (select count(*) from fund_receipts x where x.award_id=a.id and x.currency is distinct from a.currency)
+            +(select count(*) from expenditures x where x.award_id=a.id and x.currency is distinct from a.currency)
+            +(select count(*) from commitments x where x.award_id=a.id and x.currency is distinct from a.currency) excluded_currency_mismatches
             from awards a
-            left join (select award_id,sum(received_amount) cash,max(verified_at) latest_verification from fund_receipts where verified_at is not null group by award_id) r on r.award_id=a.id
-            left join (select award_id,sum(amount) spent from expenditures where reconciled group by award_id) e on e.award_id=a.id
-            left join (select award_id,sum(amount) committed from commitments where status='OPEN' group by award_id) c on c.award_id=a.id
-            where a.status='ACTIVE' and (? or a.principal_investigator_id=?) order by a.currency,a.reference""",staff(actor),actor.id)
+            left join (select award_id,currency,sum(received_amount) cash,max(verified_at) latest_verification from fund_receipts where verified_at is not null group by award_id,currency) r on r.award_id=a.id and r.currency=a.currency
+            left join (select award_id,currency,sum(amount) spent from expenditures where reconciled group by award_id,currency) e on e.award_id=a.id and e.currency=a.currency
+            left join (select award_id,currency,sum(amount) committed from commitments where status='OPEN' group by award_id,currency) c on c.award_id=a.id and c.currency=a.currency
+            where a.status in ('ACTIVE','CLOSING') and (? or a.principal_investigator_id=?) order by a.currency,a.reference""",staff(actor),actor.id)
         val currencies=position.groupBy { it["currency"].toString() }.map { (currency,rows) ->
-            mapOf("currency" to currency,"awards" to rows.size)+listOf("approved_budget","verified_receipts","verified_expenditure","open_commitments","uncommitted_budget").associateWith { key -> rows.fold(BigDecimal.ZERO) { total,row -> total+store.decimal(row,key) }.toPlainString() }
+            mapOf("currency" to currency,"awards" to rows.size,
+                "excluded_currency_mismatches" to rows.sumOf { (it["excluded_currency_mismatches"] as? Number)?.toLong() ?: 0L })+
+                listOf("approved_budget","verified_receipts","verified_expenditure","open_commitments","uncommitted_budget").associateWith { key -> rows.fold(BigDecimal.ZERO) { total,row -> total+store.decimal(row,key) }.toPlainString() }
         }
-        return mapOf("currencies" to currencies,"awards" to position.map(store::wire),"note" to "Currencies are not combined. Receipts and expenditure include only verified records. Uncommitted budget is not a bank balance. This register does not post entries to NHRC's accounting system")
+        return mapOf("currencies" to currencies,"awards" to position.map(store::wire),"note" to "Currencies are not combined. Transactions with a different or missing currency are excluded and counted for review. Receipts and expenditure include only verified records. Uncommitted budget is not a bank balance. This register does not post entries to NHRC's accounting system")
     }
     fun personal(actor: GrantActor): GrantRow {
         actor.requireAny(WorkbenchCatalogue.allBusiness)
@@ -124,6 +130,8 @@ class WorkbenchOversight(private val store: WorkbenchStore) {
                 require(store.rows("select id from financial_reports where award_id=? and status<>'ACCEPTED'",id).isEmpty()) { "Record acceptance of all financial reports" }
                 require(store.rows("select id from fund_receipts where award_id=? and received_amount is not null and verified_at is null",id).isEmpty()) { "Verify the remaining receipts" }
                 require(store.rows("select id from expenditures where award_id=? and not reconciled",id).isEmpty()) { "Reconcile the remaining expenditure" }
+                val currency=before["currency"]
+                require(store.rows("select id from fund_receipts where award_id=? and currency is distinct from ? union all select id from expenditures where award_id=? and currency is distinct from ? union all select id from commitments where award_id=? and currency is distinct from ?",id,currency,id,currency,id,currency).isEmpty()) { "Resolve currency mismatches before closing the award" }
             }
         }
         store.jdbc.update("update awards set status=?,record_version=record_version+1,updated_at=now() where id=?",definition.to,id)
