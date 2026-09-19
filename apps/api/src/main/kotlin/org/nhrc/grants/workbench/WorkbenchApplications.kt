@@ -186,7 +186,7 @@ class WorkbenchApplications(private val store: WorkbenchStore,private val auth: 
             }
             "ASSIGN" -> {
                 val researcher=UUID.fromString(value(input,"researcherId",36))
-                require(reviewerEligible(researcher,setOf("RESEARCHER"))) { "The selected person is not an active researcher" }
+                require(reviewerEligible(researcher,WorkbenchCatalogue.researchRoles)) { "The selected person is not an active researcher or research fellow" }
                 require(store.rows("select id from researcher_profiles where user_id=? and active",researcher).isNotEmpty()) { "Create the researcher's profile before assigning an application" }
                 store.jdbc.update("insert into application_assignments(application_id,researcher_id,assigned_by) values (?,?,?)",id,researcher,actor.id)
                 store.jdbc.update("update applications set lead_researcher_id=? where id=?",researcher,id)
