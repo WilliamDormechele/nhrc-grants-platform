@@ -165,10 +165,11 @@ class WorkbenchRecords(private val store: WorkbenchStore, private val auth: Work
     @Transactional
     fun save(key: String,id: UUID?,input: GrantRecordInput,actor: GrantActor): GrantRow {
         val r=resource(key);val before=id?.let { store.one(r.table,it,true) }
-        val values=GrantRules.validate(r.fields,input.values)
         if(r.key=="researchers"&&before==null&&!actor.hasAny(WorkbenchCatalogue.profileWriters)) {
-            actor.requireAny(WorkbenchCatalogue.researchRoles);require(values["user_id"]==actor.id.toString()) { "You may create only your own researcher profile" }
+            actor.requireAny(WorkbenchCatalogue.researchRoles)
+            if(input.values["user_id"]?.toString()!=actor.id.toString()) throw ResponseStatusException(HttpStatus.FORBIDDEN,"You may create only your own researcher profile")
         }else auth.requireWrite(r,before,actor)
+        val values=GrantRules.validate(r.fields,input.values)
         if(before!=null) {
             store.checkVersion(before,input.version)
             if(!canEdit(r,before,actor))throw ResponseStatusException(HttpStatus.CONFLICT,"This record is locked at its current stage")
