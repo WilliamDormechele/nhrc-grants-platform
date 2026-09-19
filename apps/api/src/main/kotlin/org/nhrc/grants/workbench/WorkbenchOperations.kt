@@ -44,35 +44,35 @@ class WorkbenchOperations(private val store: WorkbenchStore) {
         }
         "features" -> {
             actor.requireAny(admins)
-            store.rows("select id,name,enabled,description from feature_flags order by name")
+            store.rows("select code,name,state,description from feature_flags order by name")
         }
         "integrations" -> {
             actor.requireAny(admins)
-            store.rows("""select id,name,integration_type,status,last_checked_at,last_success_at,last_error
+            store.rows("""select id,code,name,integration_type,status,data_direction,last_success_at,last_failure_at,last_failure_message
                 from integration_registry order by name""")
         }
         "backups" -> {
             actor.requireAny(admins)
-            store.rows("select id,backup_type,status,started_at,completed_at,location_reference from backup_runs order by started_at desc limit 200")
+            store.rows("select id,backup_type,status,started_at,completed_at,size_bytes,verification_status,storage_location from backup_runs order by started_at desc limit 200")
         }
         "security-events" -> {
             actor.requireAny(admins)
-            store.rows("select id,event_type,severity,status,summary,created_at,resolved_at from system_events order by created_at desc limit 500")
+            store.rows("select id,event_type,severity,component,message,acknowledged_at,created_at from system_events order by created_at desc limit 500")
         }
         "privileged" -> {
             actor.requireAny(admins)
-            store.rows("""select p.id,p.action,p.entity_type,p.entity_id,p.occurred_at,p.reason,u.display_name actor
+            store.rows("""select p.id,p.action,p.target_type,p.target_id,p.occurred_at,p.reason,u.display_name actor
                 from privileged_events p left join users u on u.id=p.actor_user_id
                 order by p.occurred_at desc limit 500""")
         }
         "declarations" -> {
             actor.requireAny(governance)
-            store.rows("""select d.id,d.declaration_type,d.status,d.declared_at,d.reviewed_at,d.notes,u.display_name
+            store.rows("""select d.id,d.declaration_type,d.status,d.details,d.declared_at,d.reviewed_at,u.display_name
                 from declarations d join users u on u.id=d.user_id order by d.declared_at desc limit 300""")
         }
         "compliance" -> {
             actor.requireAny(governance)
-            store.rows("""select id,compliance_type,authority,reference,status,approval_date,expiry_date,renewal_due_date
+            store.rows("""select id,compliance_type,authority,reference,status,approved_date,expiry_date,renewal_due_date
                 from compliance_records order by renewal_due_date nulls last,expiry_date nulls last limit 300""")
         }
         else -> throw IllegalArgumentException("Unsupported operational workspace")
