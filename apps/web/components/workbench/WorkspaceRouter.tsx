@@ -1,83 +1,86 @@
 "use client";
 import {useState} from "react";
-import {Field,Page,Row,human} from "./client";
+import {Page,Row,human} from "./client";
 import {useLoad,useResource,useWorkbench} from "./context";
-import {Badge,ErrorBox,Heading,Loading,Notice,Panel,Stat,Table} from "./controls";
-import RecordWorkspace,{RegisterOptions} from "./RecordWorkspace";
+import {Badge,ErrorBox,Heading,Loading,Notice,Panel,Table} from "./controls";
+import RecordWorkspace from "./RecordWorkspace";
 import ApplicationWorkspace from "./ApplicationWorkspace";
 import OpportunityWorkspace from "./OpportunityWorkspace";
 import AwardWorkspace from "./AwardWorkspace";
+import DiligenceWorkspace from "./DiligenceWorkspace";
 import {ExecutiveWorkspace,FinanceWorkspace,PersonalWorkspace} from "./OverviewWorkspace";
-
-const registers:Record<string,Omit<RegisterOptions,"title"|"selectedId">>={
-  "Researcher Profiles":{resourceKey:"researchers",description:"Maintain researcher-approved expertise, methods, career stage and relevant track record for grant discovery and team formation.",createLabel:"Add researcher profile",layout:"cards"},
-  "NHRC Institutional Profile":{resourceKey:"institutions",description:"Maintain the legal, strategic, research-platform and eligibility information used in institutional applications.",createLabel:"Add institutional profile",layout:"cards"},
-  "Partner Directory":{resourceKey:"partners",description:"Maintain partner institutions, contacts, capabilities and collaboration interests.",createLabel:"Add partner institution",layout:"cards"},
-  "Funder Directory":{resourceKey:"funders",description:"Maintain funder contacts, official websites and research funding interests.",createLabel:"Add funder",layout:"cards"},
-  "Contracts & Agreements":{resourceKey:"contracts",description:"Prepare award agreements, retain controlled document references and obtain independent approval.",createLabel:"Add agreement",columns:["title","contract_type","reference","effective_date","expiry_date"]},
-  "Partners & Subawards":{resourceKey:"award-partners",description:"Record partner responsibilities, allocations and evidence of signed agreements.",createLabel:"Add award partner",columns:["role","approved_allocation","currency"],notice:"Signed agreements can be recorded only after partner due diligence is approved. Partner allocations are recorded in the award currency."},
-  "Amendments":{resourceKey:"amendments",description:"Record the justification, approval requirements and proposed dates for a change to an award.",createLabel:"Request amendment",columns:["amendment_type","reference","effective_date"],notice:"Internal approval is not funder approval. Recording an amendment does not automatically change the approved award terms."},
-  "Deliverables":{resourceKey:"deliverables",description:"Track accountable delivery obligations from preparation through recorded external acceptance.",createLabel:"Add deliverable",columns:["title","deliverable_type","due_date"]},
-  "Risks & Issues":{resourceKey:"risks",description:"Record evidence-based risks, mitigation, ownership and review dates.",createLabel:"Record risk or issue",columns:["title","likelihood","impact","review_date"]},
-  "Funds Received":{resourceKey:"receipts",description:"Record expected instalments and actual receipts, then independently verify them against accounting evidence.",createLabel:"Record fund receipt",columns:["reference","expected_amount","expected_date","received_amount","received_date"],notice:"An expected instalment is not cash received. Verification requires an actual amount, receipt date and independent authorised officer."},
-  "Expenditure":{resourceKey:"expenditures",description:"Record grant expenditure with its source accounting reference and independent verification.",createLabel:"Add expenditure",columns:["transaction_date","category","amount","currency","finance_reference"]},
-  "Commitments":{resourceKey:"commitments",description:"Track outstanding obligations separately from settled expenditure.",createLabel:"Record commitment",columns:["category","amount","currency","expected_date"]},
-  "Partner Advances":{resourceKey:"advances",description:"Monitor partner funds advanced, supporting accountability and retirement deadlines.",createLabel:"Record partner advance",columns:["amount_advanced","amount_accounted","currency","advanced_date","retirement_due_date"]},
-  "Financial Reporting":{resourceKey:"financial-reports",description:"Prepare, submit and record acceptance of financial reports.",createLabel:"Add financial reporting obligation",columns:["period_start","period_end","due_date"]},
-  "Financial Forecasts":{resourceKey:"forecasts",description:"Record dated expenditure and commitment forecasts with explicit assumptions.",createLabel:"Record financial forecast",columns:["forecast_date","period_end","forecast_expenditure","forecast_commitments","currency"]},
-  "Reconciliations":{resourceKey:"reconciliations",description:"Compare the accounting source against the grant register and resolve differences before independent approval.",createLabel:"Create reconciliation",columns:["period_end","ledger_amount","platform_amount","note"]},
-  "Procurement Plans":{resourceKey:"procurement-plans",description:"Plan grant-funded requirements, methods, timing and responsible officers.",createLabel:"Add procurement plan",columns:["item_description","category","estimated_amount","planned_date","procurement_method"]},
-  "Requisitions":{resourceKey:"requisitions",description:"Prepare purchasing requirements and submit them for independent finance approval.",createLabel:"Create requisition",columns:["reference","description","amount","currency"]},
-  "Purchase Orders":{resourceKey:"purchase-orders",description:"Prepare orders against approved requisitions and approved suppliers, then record authorised issue and delivery.",createLabel:"Create purchase order",columns:["reference","amount","currency","issued_date","expected_delivery_date"]},
-  "Suppliers & Due Diligence":{resourceKey:"suppliers",description:"Maintain supplier contact information and inspect the supplier's recorded due diligence status.",createLabel:"Add supplier",columns:["name","country_code","contact_email"],notice:"A supplier record alone does not confer due diligence approval. Unapproved suppliers cannot be used for purchase orders."},
-  "Procurement Contracts":{resourceKey:"procurement-contracts",description:"Manage supplier agreement references, terms, controlled evidence and independent approval.",createLabel:"Add procurement contract",columns:["title","reference","start_date","end_date","amount"]},
-  "Equipment & Assets":{resourceKey:"assets",description:"Maintain award-linked equipment, asset tags, locations and accountable custodians.",createLabel:"Register equipment or asset",columns:["asset_tag","description","serial_number","location","acquired_date"]},
-  "Reagents & Consumables":{resourceKey:"laboratory-items",description:"Track grant-linked reagents and consumables, recorded quantities and expiry dates.",createLabel:"Register laboratory item",columns:["name","item_type","quantity","unit","expiry_date"],filter:row=>["REAGENT","CONSUMABLE"].includes(row.item_type)},
-  "Laboratory Equipment":{resourceKey:"laboratory-items",description:"Maintain laboratory equipment and its calibration and maintenance obligations.",createLabel:"Register laboratory equipment",columns:["name","catalogue_or_asset_ref","calibration_due_date","maintenance_due_date"],filter:row=>row.item_type==="EQUIPMENT"},
-  "Maintenance & Calibration":{resourceKey:"maintenance",description:"Schedule equipment servicing and retain completion dates and certificates.",createLabel:"Schedule maintenance or calibration",layout:"calendar"},
-  "Ethics & Regulatory Links":{resourceKey:"compliance",description:"Record external ethics and regulatory approvals, evidence, expiry dates and renewals.",createLabel:"Add external approval requirement",columns:["compliance_type","authority","reference","expiry_date","renewal_due_date"]},
-  "Compliance Calendar":{resourceKey:"compliance",description:"Review recorded external approval expiries and renewal obligations.",createLabel:"Add compliance obligation",layout:"calendar"},
-  "Reports":{resourceKey:"reports",description:"Track technical reports through preparation, submission and recorded acceptance.",createLabel:"Add technical report obligation",columns:["report_type","period_start","period_end","due_date"]},
-  "Outputs":{resourceKey:"outputs",description:"Record grant-attributed research outputs, citations and public references.",createLabel:"Record research output",columns:["title","output_type","output_date"]},
-  "Impact":{resourceKey:"impact",description:"Distinguish claimed impact from independently verified supporting evidence.",createLabel:"Record impact evidence",columns:["title","impact_type","impact_date"]},
-  "Closeout":{resourceKey:"closeout",description:"Resolve the technical, financial, partner, asset, information and compliance requirements for award closure.",createLabel:"Add closeout requirement",columns:["item_type","title","responsible_role","due_date"]},
-  "Organisation Structure":{resourceKey:"units",description:"Maintain institutional divisions, units and teams without circular reporting structures.",createLabel:"Add organisational unit",columns:["code","name","unit_type"]},
-  "Reference Data":{resourceKey:"themes",description:"Maintain approved institutional research themes used in grant planning.",createLabel:"Add research theme",columns:["code","name"]},
-  "Help & Support":{resourceKey:"support",description:"Record a support request with its priority and relevant detail. Do not include passwords or confidential proposal content.",createLabel:"Raise support request",columns:["subject","category","priority"]}
-};
+import {registers} from "./workspaceRegisters";
 
 export default function WorkspaceRouter({name,id}:{name:string;id?:string}){
+  const {go}=useWorkbench();
   if(name==="Opportunity Intelligence")return <OpportunityWorkspace id={id}/>;
+  if(name==="Due Diligence")return <DiligenceWorkspace/>;
   if(["Eligibility & Fit","Applications","Proposal Workspace","Budget Builder","Internal Review","Approvals","Submissions"].includes(name))return <ApplicationWorkspace name={name} id={id}/>;
   if(["Executive Overview","Portfolio Analytics","Pipeline Analytics"].includes(name))return <ExecutiveWorkspace name={name}/>;
   if(["Award Register","Award Setup"].includes(name))return <AwardWorkspace name={name} id={id}/>;
   if(["Finance Dashboard","Financial Monitoring","Award Budgets","Budget vs Actual"].includes(name))return <FinanceWorkspace name={name}/>;
   if(["My Work","Notifications","Calendar"].includes(name))return <PersonalWorkspace name={name}/>;
   if(["Procurement Dashboard","Procurement Tracking","Laboratory Oversight","Laboratory Procurement","Laboratory Compliance","Financial Approvals","Financial Closeout"].includes(name))return <OperationalOverview name={name}/>;
-  if(name==="Forms & Fields"||name==="Workflow Configuration"||name==="Approval Rules")return <FormCatalogue name={name}/>;
+  if(["Forms & Fields","Workflow Configuration","Approval Rules"].includes(name))return <FormCatalogue name={name}/>;
   const options=registers[name];
-  if(options)return <RecordWorkspace key={`${name}-${id||""}`} {...options} title={name} selectedId={id}/>;
+  if(options)return <RecordWorkspace key={`${name}-${id||""}`} {...options} title={name} selectedId={id}>
+    {["Partner Directory","Suppliers & Due Diligence","Partners & Subawards"].includes(name)&&<div className="actions" style={{marginBottom:20}}><button className="btn" onClick={()=>go("Due Diligence")}>Open due diligence assessments</button></div>}
+  </RecordWorkspace>;
   return <ProtectedWorkspace name={name}/>;
 }
 
 function QueuePanel({resourceKey,title,route}:{resourceKey:string;title:string;route:string}){
   const {go}=useWorkbench(),resource=useResource(resourceKey),load=useLoad<Page>(resource?`/records/${resourceKey}?size=5`:null);
   return <Panel title={title} note={load.data?`${load.data.total} recorded items. Showing the first five in register order.`:"Access follows your institutional role."} actions={resource?<button className="btn small" onClick={()=>go(route)}>Open workspace</button>:undefined}>
-    {!resource?<div className="panelbody"><Notice>Not available to your current role.</Notice></div>:load.loading?<Loading/>:load.error?<ErrorBox message={load.error} retry={load.reload}/>:<Table rows={load.data?.items||[]} columns={[{key:"title",label:"Record",render:row=>human(row.title||row.name||row.reference||row.item_description||row.subject||row.activity_type||row.report_type)},{key:"status",label:"Stage",render:row=><Badge value={row.status||row.agreement_status||"RECORDED"}/>}]} onOpen={row=>go(route,row.id)}/>}</Panel>;
+    {!resource?<div className="panelbody"><Notice>Not available to your current role.</Notice></div>:load.loading?<Loading/>:load.error?<ErrorBox message={load.error} retry={load.reload}/>:<Table rows={load.data?.items||[]} columns={[
+      {key:"title",label:"Record",render:row=>human(row.title||row.name||row.reference||row.item_description||row.subject||row.activity_type||row.report_type)},
+      {key:"status",label:"Stage",render:row=><Badge value={row.status||row.agreement_status||"RECORDED"}/>}
+    ]} onOpen={row=>go(route,row.id)}/>}</Panel>;
 }
 function OperationalOverview({name}:{name:string}){
-  const {go}=useWorkbench();
   const lab=name.startsWith("Laboratory"),finance=name.startsWith("Financial");
-  const queues=lab?[["laboratory-items","Laboratory register","Laboratory Equipment"],["maintenance","Service and calibration obligations","Maintenance & Calibration"],["compliance","External approval obligations","Ethics & Regulatory Links"]]:finance?[["receipts","Receipts requiring verification","Funds Received"],["reconciliations","Reconciliations","Reconciliations"],["closeout","Award closeout requirements","Closeout"]]:[["requisitions","Purchasing requirements","Requisitions"],["purchase-orders","Order and delivery register","Purchase Orders"],["procurement-plans","Planned procurement","Procurement Plans"],["assets","Asset accountability","Equipment & Assets"]];
-  return <><Heading title={name} description={lab?"Coordinate laboratory equipment, grant-funded requirements, servicing and external obligations.":finance?"Inspect the underlying finance evidence and controlled completion requirements.":"Oversee the purchasing chain from planned requirements through approval, ordering, delivery and asset custody."}/><div className="pipeline">{(lab?["Register requirement","Confirm procurement","Receive and identify","Track expiry","Maintain and calibrate","Retain evidence"]:finance?["Record transaction","Verify evidence","Reconcile balances","Resolve advances","Complete reports","Authorise closure"]:["Plan requirement","Prepare requisition","Finance approval","Approve supplier","Issue order","Record delivery"]).map((step,index)=><div className="step" key={step}><span className="n">STEP {index+1}</span><b>{step}</b></div>)}</div><div className="guidegrid">{queues.map(([resourceKey,title,route])=><QueuePanel key={resourceKey} resourceKey={resourceKey} title={title} route={route}/>)}</div><Notice>{lab?"Laboratory procurement uses the institution's procurement controls. This register does not measure live stock consumption or replace the laboratory information system.":finance?"Open a record to see actions currently permitted to your account. These panels are register previews, not complete approval queues.":"Purchasing requires an approved requisition and approved supplier. Recorded orders are not automatically sent to suppliers or posted to the accounting system."}</Notice></>;
+  const queues=lab?
+    [["laboratory-items","Laboratory register","Laboratory Equipment"],["maintenance","Service and calibration obligations","Maintenance & Calibration"],["compliance","External approval obligations","Ethics & Regulatory Links"]]:finance?
+    [["receipts","Recorded receipts","Funds Received"],["reconciliations","Reconciliations","Reconciliations"],["closeout","Award closeout requirements","Closeout"]]:
+    [["requisitions","Purchasing requirements","Requisitions"],["purchase-orders","Orders and deliveries","Purchase Orders"],["procurement-plans","Planned procurement","Procurement Plans"],["assets","Asset accountability","Equipment & Assets"]];
+  const steps=lab?["Register requirement","Confirm procurement","Receive and identify","Track expiry","Maintain and calibrate","Retain evidence"]:finance?
+    ["Record transaction","Verify evidence","Reconcile balances","Resolve advances","Complete reports","Authorise closure"]:
+    ["Plan requirement","Prepare requisition","Finance approval","Approve supplier","Issue order","Record delivery"];
+  return <>
+    <Heading title={name} description={lab?"Coordinate laboratory equipment, grant-funded requirements, servicing and external obligations.":finance?"Inspect financial evidence and controlled completion requirements.":"Oversee purchasing from planned requirements through approval, ordering, delivery and asset custody."}/>
+    <div className="pipeline">{steps.map((step,index)=><div className="step" key={step}><span className="n">STEP {index+1}</span><b>{step}</b></div>)}</div>
+    <div className="guidegrid">{queues.map(([resourceKey,title,route])=><QueuePanel key={resourceKey} resourceKey={resourceKey} title={title} route={route}/>)}</div>
+    <Notice>{lab?"Laboratory procurement follows institutional purchasing controls. This register does not measure live stock consumption or replace the laboratory information system.":finance?"Open each record to inspect the actions currently permitted to your account. These panels are register previews, not complete approval queues.":"Purchasing requires an approved requisition and current approved supplier assessment. Orders are not automatically sent to suppliers or posted to accounting."}</Notice>
+  </>;
 }
 
 function FormCatalogue({name}:{name:string}){
-  const {catalogue}=useWorkbench(),[key,setKey]=useState(catalogue[0]?.key||"");
+  const {catalogue}=useWorkbench();const [key,setKey]=useState(catalogue[0]?.key||"");
   const resource=catalogue.find(item=>item.key===key);
-  return <><Heading title={name} description="Inspect the server-controlled form requirements and approval definitions available to your role."/><Notice>These definitions are controlled by a reviewed software change. Editing a field or approval rule directly from this screen is intentionally disabled.</Notice><div className="filters"><div className="field"><label htmlFor="catalogue-form">Workspace definition</label><select id="catalogue-form" value={key} onChange={event=>setKey(event.target.value)}>{catalogue.map(item=><option key={item.key} value={item.key}>{item.title}</option>)}</select></div></div>{resource&&<><Panel title={resource.title}><Table rows={resource.fields} columns={[{key:"label",label:"Field"},{key:"kind",label:"Entry type"},{key:"required",label:"Required"},{key:"choices",label:"Permitted values"},{key:"lookup",label:"Linked register"}]}/></Panel><Panel title="Configured record transitions"><Table rows={resource.transitions} columns={[{key:"label",label:"Action"},{key:"from",label:"Permitted stages"},{key:"to",label:"Resulting stage"},{key:"roles",label:"Authorised roles"},{key:"independent",label:"Independent decision"},{key:"evidenceRequired",label:"Evidence required"}]}/></Panel></>}</>;
+  return <>
+    <Heading title={name} description="Inspect the controlled form requirements and approval definitions available to your role."/>
+    <Notice>Definitions are maintained through a reviewed software change. Direct editing of a field or approval rule is not enabled here.</Notice>
+    <div className="filters"><div className="field"><label htmlFor="catalogue-form">Workspace definition</label><select id="catalogue-form" value={key} onChange={event=>setKey(event.target.value)}>{catalogue.map(item=><option key={item.key} value={item.key}>{item.title}</option>)}</select></div></div>
+    {resource&&<>
+      <Panel title={resource.title}><Table rows={resource.fields} columns={[{key:"label",label:"Field"},{key:"kind",label:"Entry type"},{key:"required",label:"Required"},{key:"choices",label:"Permitted values"},{key:"lookup",label:"Linked register"}]}/></Panel>
+      <Panel title="Configured record transitions"><Table rows={resource.transitions} columns={[{key:"label",label:"Action"},{key:"from",label:"Permitted stages"},{key:"to",label:"Resulting stage"},{key:"roles",label:"Authorised roles"},{key:"independent",label:"Independent decision"},{key:"evidenceRequired",label:"Evidence required"}]}/></Panel>
+    </>}
+  </>;
 }
 function ProtectedWorkspace({name}:{name:string}){
   const {actor,go}=useWorkbench();
-  return <><Heading title={name} description="Protected institutional administration and operational oversight."/><div className="grid"><Panel title="Connection status"><div className="panelbody"><Notice warning>The controlled transaction service for this workspace is not connected to this interface yet. No inactive or simulated save, approve or administrative action is presented as working.</Notice><p>Use the connected records and decision history for grant operations. Changes to access, retention, backups and service configuration require a separately validated administrative workflow.</p><button className="btn" onClick={()=>go("Help & Support")}>Record a support request</button></div></Panel><Panel title="Authority and accountability"><div className="panelbody"><h3>{actor.name}</h3><div className="taglist">{actor.roles.map(role=><Badge key={role} value={role}/>)}</div><Notice>Technical administrator privileges do not grant authority to approve proposals, verify expenditure or close awards. Business actions remain restricted to the assigned institutional roles.</Notice></div></Panel></div></>;
+  return <>
+    <Heading title={name} description="Protected institutional administration and operational oversight."/>
+    <div className="grid">
+      <Panel title="Connection status"><div className="panelbody">
+        <Notice warning>The controlled service for this workspace is not connected to this interface yet. No inactive or simulated save, approval or administrative action is presented as working.</Notice>
+        <p>Access changes, retention, backups and service settings require separately validated administrative workflows.</p>
+        <button className="btn" onClick={()=>go("Help & Support")}>Record a support request</button>
+      </div></Panel>
+      <Panel title="Authority and accountability"><div className="panelbody">
+        <h3>{actor.name}</h3><div className="taglist">{actor.roles.map(role=><Badge key={role} value={role}/>)}</div>
+        <Notice>Technical administrator privileges do not grant authority to approve proposals, verify expenditure or close awards. Business decisions remain restricted to assigned institutional roles.</Notice>
+      </div></Panel>
+    </div>
+  </>;
 }
