@@ -59,7 +59,7 @@ export default function GrantsApp(){
     <a className="skip" href="#grant-main">Skip to main content</a>
     {mobile&&<button className="navback" aria-label="Close navigation" onClick={()=>setMobile(false)}/>}
     <aside className={`sidebar ${mobile?"open":""}`}>
-      <div className="brand"><button className="brandhome" aria-label="NHRC Grants home" onClick={()=>go("Home")}><span className="brandmark"><img src="/nhrc-logo.png" alt="Navrongo Health Research Centre"/></span></button><div><b>NHRC Grants</b><small>RESEARCH. ACCOUNTABILITY.</small></div></div>
+      <div className="brand"><button className="brandhome" aria-label="NHRC Grants home" onClick={()=>go("Home")}><span className="brandmark"><img src="/nhrc-logo.svg" alt="Navrongo Health Research Centre"/></span></button><div><b>NHRC Grants</b><small>RESEARCH. ACCOUNTABILITY.</small></div></div>
       <nav aria-label="Grant management workspaces">{groups.map(group=>{
         const Icon=group.icon,expanded=open===group.name,selected=parent?.name===group.name;
         return <div className={`navsection ${selected?"activeSection":""}`} key={group.name}>
