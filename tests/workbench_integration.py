@@ -102,7 +102,13 @@ def seed_test_users():
 def application_journey(kind: str, call: dict):
     app = create("applications", {"title": f"CI {kind} complete workflow", "opportunity_id": call["id"], "application_type": kind})
     path = "/applications/" + app["id"]
-    action(path, "START_ELIGIBILITY", "lead", expected=(403,))
+    current_forbidden = request(path, "grants")
+    request(path + "/actions", "lead", "POST", {
+        "action": "START_ELIGIBILITY", "version": current_forbidden["record_version"],
+        "requestId": str(uuid4()), "note": "CI-only unauthorised action check.",
+        "evidenceUrl": EVIDENCE, "values": {}
+    }, expected=(403,))
+    check(True, f"{kind}: unassigned researcher cannot start eligibility")
     started, submitted = action(path, "START_ELIGIBILITY", "grants")
     repeated = request(path + "/actions", "grants", "POST", submitted)
     check(started["record_version"] == repeated["record_version"], f"{kind}: repeated decision is idempotent")
