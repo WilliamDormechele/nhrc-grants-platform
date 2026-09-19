@@ -6,11 +6,14 @@ import {Badge,ErrorBox,FormDialog,Link,Loading,Notice,Panel,Table,field} from ".
 import RecordWorkspace from "./RecordWorkspace";
 
 export default function OpportunityWorkspace({id}:{id?:string}){
-  const {client,notify}=useWorkbench();
+  const {client,actor,notify}=useWorkbench();
   const sources=useLoad<Row>("/sources");
   const [importing,setImporting]=useState(false),[refresh,setRefresh]=useState(0);
   const available:Row[]=(sources.data?.sources||[]).filter((source:Row)=>source.configured);
   const runs:Row[]=sources.data?.runs||[];
+  const profiles:Row[]=sources.data?.profiles||[];
+  const canRunProfiles=actor.roles.includes("GRANTS_OFFICER")||actor.roles.includes("ADMIN");
+  const [runningProfile,setRunningProfile]=useState<string|null>(null);
   return <RecordWorkspace key={refresh} resourceKey="opportunities" title="Opportunity Intelligence" description="Search live approved funding sources, import calls into NHRC review, preserve provenance, and route eligible opportunities to researchers." createLabel="Add funding call" selectedId={id} columns={["title","call_type","source_reference","deadline_date","amount_max"]} extra={row=><OpportunityEvidence row={row}/>}>
     {sources.error&&<ErrorBox message={sources.error} retry={sources.reload}/>}
     <div className="grid">
@@ -25,6 +28,25 @@ export default function OpportunityWorkspace({id}:{id?:string}){
         <p><strong>Human routing</strong>A suggested match is not an assignment. Complete the institutional decisions before assigning a researcher.</p>
       </div></Panel>
     </div>
+    {profiles.length>0&&<Panel title="Automatic funding discovery" note="Enabled search profiles run on schedule and import only new or changed source records into NHRC review.">
+      <Table rows={profiles} columns={[
+        {key:"name",label:"Search profile"},
+        {key:"source_code",label:"Source",render:row=>human(row.source_code)},
+        {key:"search_term",label:"Search terms"},
+        {key:"interval_hours",label:"Every",render:row=>row.interval_hours+" hours"},
+        {key:"next_run_at",label:"Next run",render:row=>dateText(row.next_run_at)},
+        {key:"last_status",label:"Last result",render:row=><Badge value={row.last_status||"NOT_RUN"}/>},
+        {key:"enabled",label:"Automatic",render:row=><Badge value={row.enabled?"ENABLED":"DISABLED"}/>}
+      ]} onOpen={canRunProfiles?async row=>{
+        setRunningProfile(row.id);
+        try{
+          const result=await client<Row>("/configuration/search-profiles/"+row.id+"/run",{method:"POST"});
+          notify((result.imported||0)+" new calls; "+(result.refreshed||0)+" existing source records refreshed.");
+          sources.reload();setRefresh(value=>value+1);
+        }catch(ex){notify((ex as Error).message);}finally{setRunningProfile(null);}
+      }:undefined} label={runningProfile?"Running...":"Run search now"}/>
+      <div className="panelbody"><p className="tiny">The scheduler checks due profiles automatically. Imported calls remain unreviewed until NHRC staff assess eligibility and strategic fit.</p></div>
+    </Panel>}
     {runs.length>0&&<details className="panel"><summary className="panelhead">Recent funding searches</summary><Table rows={runs} columns={[
       {key:"source_code",label:"Source"},{key:"search_term",label:"Search"},{key:"status",label:"Result",render:row=><Badge value={row.status}/>},
       {key:"imported_count",label:"New calls"},{key:"refreshed_count",label:"Source updates"},{key:"started_at",label:"Started",render:row=>dateText(row.started_at)},{key:"failure_message",label:"Issue"}
