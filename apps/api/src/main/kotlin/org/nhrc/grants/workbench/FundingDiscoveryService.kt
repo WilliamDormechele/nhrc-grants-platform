@@ -1,6 +1,5 @@
 package org.nhrc.grants.workbench
 
-import org.springframework.core.env.Environment
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -12,7 +11,7 @@ import java.util.UUID
 data class FundingSearchInput(val source: String,val query: String)
 
 @Service
-class FundingDiscoveryService(private val store: WorkbenchStore,private val records: WorkbenchRecords,private val client: FundingSourceClient,transactionManager: PlatformTransactionManager,private val environment: Environment) {
+class FundingDiscoveryService(private val store: WorkbenchStore,private val records: WorkbenchRecords,private val client: FundingSourceClient,transactionManager: PlatformTransactionManager) {
     private val transaction=TransactionTemplate(transactionManager)
     fun sources(actor: GrantActor): GrantRow {
         actor.requireAny(WorkbenchCatalogue.allBusiness)
@@ -20,7 +19,7 @@ class FundingDiscoveryService(private val store: WorkbenchStore,private val reco
             mapOf("code" to "GRANTS_GOV","name" to "Grants.gov","configured" to true,"requiresKey" to false,"capability" to "Public call search and opportunity details"),
             mapOf("code" to "SIMPLER_GRANTS_GOV","name" to "Simpler.Grants.gov","configured" to client.simplerConfigured(),"requiresKey" to true,"capability" to "Public call search")
         ),"canImport" to actor.hasAny(setOf("GRANTS_OFFICER")),"limitPerRun" to 100,
-            "scheduledDiscoveryEnabled" to environment.getProperty("nhrc.discovery.enabled",Boolean::class.java,false),
+            "scheduledDiscoveryEnabled" to false,"discoveryMode" to "ON_DEMAND",
             "runs" to store.rows("select r.id,r.source_code,r.search_term,r.status,r.imported_count,r.refreshed_count,r.skipped_count,r.available_count,r.truncated,r.started_at,r.completed_at,r.failure_message,u.display_name started_by_name from grant_source_runs r left join users u on u.id=r.started_by order by r.started_at desc limit 30"))
     }
     fun import(input: FundingSearchInput,actor: GrantActor): GrantRow {
