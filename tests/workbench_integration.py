@@ -107,6 +107,16 @@ def seed_test_users():
     super_catalogue = request("/catalogue", "uat_superadmin")
     check(len(super_catalogue) >= len(request("/catalogue", "grants")),
           "Superadmin can inspect the complete resource catalogue")
+    forms = request("/configuration/forms", "uat_admin")["items"]
+    templates = request("/configuration/templates", "uat_admin")["items"]
+    check(len(forms) >= 20 and len(templates) >= 10, "Lifecycle forms and institutional templates are installed")
+    profiles = request("/configuration/search-profiles", "grants")["items"]
+    check(len(profiles) >= 5 and all(row["source_code"] == "GRANTS_GOV" for row in profiles),
+          "Automatic funding discovery profiles are installed without invoking external sources in CI")
+    for alias in ["grants","lead","finance","proc","lab","governance","uat_admin","uat_superadmin","director"]:
+        dashboard = request("/dashboard", alias)
+        check(len(dashboard.get("metrics", [])) >= 4 and dashboard.get("quickLinks"),
+              f"{alias}: role dashboard returns metrics and quick links")
 
 def application_journey(kind: str, call: dict):
     app = create("applications", {"title": f"CI {kind} complete workflow", "opportunity_id": call["id"], "application_type": kind})
