@@ -14,7 +14,7 @@ data class FundingSearchInput(val source: String,val query: String)
 class FundingDiscoveryService(private val store: WorkbenchStore,private val records: WorkbenchRecords,private val client: FundingSourceClient,transactionManager: PlatformTransactionManager) {
     private val transaction=TransactionTemplate(transactionManager)
     fun sources(actor: GrantActor): GrantRow {
-        actor.requireAny(WorkbenchCatalogue.allBusiness)
+        actor.requireAny(WorkbenchCatalogue.platformReaders)
         return mapOf("sources" to listOf(
             mapOf("code" to "GRANTS_GOV","name" to "Grants.gov","configured" to true,"requiresKey" to false,"capability" to "Public call search and opportunity details"),
             mapOf("code" to "SIMPLER_GRANTS_GOV","name" to "Simpler.Grants.gov","configured" to client.simplerConfigured(),"requiresKey" to true,"capability" to "Public call search")
