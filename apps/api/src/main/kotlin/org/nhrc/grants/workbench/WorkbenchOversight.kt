@@ -9,15 +9,15 @@ import java.util.UUID
 
 @Service
 class WorkbenchOversight(private val store: WorkbenchStore) {
-    private fun staff(actor: GrantActor)=actor.hasAny(WorkbenchCatalogue.allBusiness-WorkbenchCatalogue.researchRoles)
+    private fun staff(actor: GrantActor)=actor.hasAny(WorkbenchCatalogue.platformReaders-WorkbenchCatalogue.researchRoles)
     private fun requireAward(id: UUID,actor: GrantActor,lock: Boolean=false): GrantRow {
-        actor.requireAny(WorkbenchCatalogue.allBusiness)
+        actor.requireAny(WorkbenchCatalogue.platformReaders)
         val row=store.one("awards",id,lock)
         if(!staff(actor) && store.uuid(row,"principal_investigator_id")!=actor.id) throw ResponseStatusException(HttpStatus.FORBIDDEN,"You are not assigned to this award")
         return row
     }
     fun summary(actor: GrantActor): GrantRow {
-        actor.requireAny(WorkbenchCatalogue.allBusiness)
+        actor.requireAny(WorkbenchCatalogue.platformReaders)
         val all=staff(actor)
         val pipeline=store.rows("select stage,count(*) count from applications where (? or lead_researcher_id=? or owner_user_id=?) group by stage order by stage",all,actor.id,actor.id)
         return mapOf(
@@ -29,7 +29,7 @@ class WorkbenchOversight(private val store: WorkbenchStore) {
         )
     }
     fun finance(actor: GrantActor): GrantRow {
-        actor.requireAny(WorkbenchCatalogue.allBusiness)
+        actor.requireAny(WorkbenchCatalogue.platformReaders)
         // Never relabel historical foreign-currency transactions as the award currency.
         val position=store.rows("""select a.id,a.reference,a.title,a.currency,a.nhrc_allocation approved_budget,
             coalesce(r.cash,0) verified_receipts,coalesce(e.spent,0) verified_expenditure,coalesce(c.committed,0) open_commitments,
@@ -50,7 +50,7 @@ class WorkbenchOversight(private val store: WorkbenchStore) {
         return mapOf("currencies" to currencies,"awards" to position.map(store::wire),"note" to "Currencies are not combined. Transactions with a different or missing currency are excluded and counted for review. Receipts and expenditure include only verified records. Uncommitted budget is not a bank balance. This register does not post entries to NHRC's accounting system")
     }
     fun personal(actor: GrantActor): GrantRow {
-        actor.requireAny(WorkbenchCatalogue.allBusiness)
+        actor.requireAny(WorkbenchCatalogue.platformReaders)
         val work=store.rows("""select a.id,a.reference,a.title,a.stage,a.deadline_at,'ASSIGNMENT' work_type from applications a join application_assignments x on x.application_id=a.id where x.researcher_id=? and x.response='PENDING' and a.stage='ASSIGNED'
             union all select a.id,a.reference,a.title,a.stage,a.deadline_at,r.review_type work_type from applications a join application_reviews r on r.application_id=a.id where r.reviewer_id=? and r.status='PENDING' and r.content_revision=a.content_revision""",actor.id,actor.id)
         val all=staff(actor)
@@ -105,12 +105,12 @@ class WorkbenchOversight(private val store: WorkbenchStore) {
     }
     @Transactional
     fun readNotification(id: UUID,actor: GrantActor): GrantRow {
-        actor.requireAny(WorkbenchCatalogue.allBusiness)
+        actor.requireAny(WorkbenchCatalogue.platformReaders)
         if(store.jdbc.update("update notifications set read_at=coalesce(read_at,now()) where id=? and user_id=?",id,actor.id)==0) throw ResponseStatusException(HttpStatus.NOT_FOUND,"Notification not found")
         return mapOf("id" to id,"read" to true)
     }
     fun awards(actor: GrantActor,query: String): GrantRow {
-        actor.requireAny(WorkbenchCatalogue.allBusiness);require(query.length<=200) { "Search is too long" }
+        actor.requireAny(WorkbenchCatalogue.platformReaders);require(query.length<=200) { "Search is too long" }
         val rows=store.rows("select a.*,u.display_name principal_investigator,f.name funder from awards a left join users u on u.id=a.principal_investigator_id left join funders f on f.id=a.funder_id where (? or a.principal_investigator_id=?) and (a.title ilike ? or a.reference ilike ?) order by a.end_date nulls last,a.id limit 201",staff(actor),actor.id,"%$query%","%$query%")
         return mapOf("items" to rows.take(200).map(store::wire),"truncated" to (rows.size>200))
     }
