@@ -242,8 +242,10 @@ def main():
         for resource in request("/catalogue", role):
             result = request("/records/" + resource["key"] + "?size=2", role)
             check(isinstance(result.get("items"), list), f"{role}: {resource['key']} register returns structured data")
-    request("/finance", "superadmin", expected=(403,))
-    check(True, "Technical superadmin does not acquire financial authority")
+    finance_view = request("/finance", "superadmin")
+    check(isinstance(finance_view.get("awards"), list), "Superadmin can inspect Finance without acquiring Finance authority")
+    request("/records/receipts", "superadmin", "POST", {"values": {}}, expected=(403,))
+    check(True, "Superadmin visibility does not grant financial preparation or approval authority")
     call_values = {"title": "CI funding call " + uuid4().hex[:8], "call_type": "GRANT_CALL", "summary": "Fictional CI funding conditions.",
                    "url": EVIDENCE, "eligibility_criteria": "CI institution is eligible for this fictional test.", "keywords": ["Population health"],
                    "currency": "GBP", "amount_max": "10000", "deadline_date": FUTURE}
