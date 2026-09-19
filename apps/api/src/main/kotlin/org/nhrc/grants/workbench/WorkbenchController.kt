@@ -43,6 +43,7 @@ class WorkbenchController(private val auth: WorkbenchAuth,private val records: W
     @PatchMapping("/configuration/templates/{id}") fun updateTemplate(@PathVariable id: UUID,@RequestBody input: GrantRecordInput,request: HttpServletRequest)=configuration.updateTemplate(id,input,auth.actor(request))
     @GetMapping("/configuration/search-profiles") fun searchProfiles(request: HttpServletRequest)=configuration.searchProfiles(auth.actor(request))
     @PatchMapping("/configuration/search-profiles/{id}") fun updateSearchProfile(@PathVariable id: UUID,@RequestBody input: GrantRecordInput,request: HttpServletRequest)=configuration.updateSearchProfile(id,input,auth.actor(request))
+    @PostMapping("/configuration/search-profiles/{id}/run") fun runSearchProfile(@PathVariable id: UUID,request: HttpServletRequest)=configuration.runSearchProfile(id,auth.actor(request))
     @GetMapping("/summary") fun summary(request: HttpServletRequest)=oversight.summary(auth.actor(request))
     @GetMapping("/finance") fun finance(request: HttpServletRequest)=oversight.finance(auth.actor(request))
     @GetMapping("/personal") fun personal(request: HttpServletRequest)=oversight.personal(auth.actor(request))
