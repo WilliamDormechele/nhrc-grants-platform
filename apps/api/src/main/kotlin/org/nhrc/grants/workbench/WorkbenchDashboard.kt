@@ -83,17 +83,17 @@ class WorkbenchDashboard(private val store: WorkbenchStore) {
             metric("Active awards",count("select count(*) from awards where status in ('ACTIVE','CLOSING')")),
             metric("Open security events",count("select count(*) from system_events where acknowledged_at is null"))
         )
-        else -> listOf(
-            metric("Active awards",count("select count(*) from awards where status='ACTIVE'")),
-            metric("Applications",count("select count(*) from applications")),
-            metric("Reports due in 30 days",count("select count(*) from reports where due_date<=current_date+30 and status not in ('ACCEPTED','COMPLETED')")),
-            metric("Open risks",count("select count(*) from award_risks where status='OPEN'"))
-        )
         "EXECUTIVE" -> listOf(
             metric("Funding calls",count("select count(*) from opportunities")),
             metric("Applications in progress",count("select count(*) from applications where stage not in ('CLOSED','OUTCOME_RECORDED','AWARDED')")),
             metric("Active awards",count("select count(*) from awards where status in ('ACTIVE','CLOSING')")),
             metric("Reports / deliverables due",count("select (select count(*) from reports where status not in ('ACCEPTED','COMPLETED') and due_date<=current_date+30)+(select count(*) from award_deliverables where status not in ('ACCEPTED','COMPLETED') and due_date<=current_date+30)"))
+        )
+        else -> listOf(
+            metric("Active awards",count("select count(*) from awards where status='ACTIVE'")),
+            metric("Applications",count("select count(*) from applications")),
+            metric("Reports due in 30 days",count("select count(*) from reports where due_date<=current_date+30 and status not in ('ACCEPTED','COMPLETED')")),
+            metric("Open risks",count("select count(*) from award_risks where status='OPEN'"))
         )
     }
 
@@ -109,7 +109,7 @@ class WorkbenchDashboard(private val store: WorkbenchStore) {
             order by r.received_date nulls last limit 8""")
         "PROCUREMENT" -> store.rows("""select r.id,r.description title,r.reference,r.status stage,r.requested_at::date due_date,'Requisitions' workspace
             from procurement_requisitions r where r.status not in ('CLOSED','CANCELLED')
-            order by r.required_date nulls last limit 8""")
+            order by r.requested_at desc limit 8""")
         "LABORATORY" -> store.rows("""select id,name title,catalogue_or_asset_ref reference,status,
             least(coalesce(maintenance_due_date,'9999-12-31'::date),coalesce(calibration_due_date,'9999-12-31'::date)) due_date,
             'Maintenance & Calibration' workspace from laboratory_items where item_type='EQUIPMENT'
