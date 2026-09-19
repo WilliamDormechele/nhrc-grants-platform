@@ -69,7 +69,7 @@ class WorkbenchDashboard(private val store: WorkbenchStore) {
             metric("Current compliance obligations",count("select count(*) from compliance_records where status='APPROVED'")),
             metric("Renewals due in 60 days",count("select count(*) from compliance_records where coalesce(renewal_due_date,expiry_date) between current_date and current_date+60")),
             metric("Open declarations",count("select count(*) from declarations where status not in ('CLOSED','RESOLVED')")),
-            metric("Due diligence under review",count("select count(*) from due_diligence_assessments where status in ('DRAFT','SUBMITTED','UNDER_REVIEW','RETURNED')"))
+            metric("Due diligence under review",count("select count(*) from due_diligence_reviews where status in ('DRAFT','PENDING','CONDITIONAL')"))
         )
         "ADMIN" -> listOf(
             metric("Active users",count("select count(*) from users where active")),
@@ -89,6 +89,12 @@ class WorkbenchDashboard(private val store: WorkbenchStore) {
             metric("Reports due in 30 days",count("select count(*) from reports where due_date<=current_date+30 and status not in ('ACCEPTED','COMPLETED')")),
             metric("Open risks",count("select count(*) from award_risks where status='OPEN'"))
         )
+        "EXECUTIVE" -> listOf(
+            metric("Funding calls",count("select count(*) from opportunities")),
+            metric("Applications in progress",count("select count(*) from applications where stage not in ('CLOSED','OUTCOME_RECORDED','AWARDED')")),
+            metric("Active awards",count("select count(*) from awards where status in ('ACTIVE','CLOSING')")),
+            metric("Reports / deliverables due",count("select (select count(*) from reports where status not in ('ACCEPTED','COMPLETED') and due_date<=current_date+30)+(select count(*) from award_deliverables where status not in ('ACCEPTED','COMPLETED') and due_date<=current_date+30)"))
+        )
     }
 
     private fun queues(type:String,actor:GrantActor):List<GrantRow> = when(type) {
@@ -101,7 +107,7 @@ class WorkbenchDashboard(private val store: WorkbenchStore) {
         "FINANCE" -> store.rows("""select r.id,a.title,r.reference,'RECEIPT_VERIFICATION' stage,r.received_date due_date,'Funds Received' workspace
             from fund_receipts r join awards a on a.id=r.award_id where r.received_amount is not null and r.verified_at is null
             order by r.received_date nulls last limit 8""")
-        "PROCUREMENT" -> store.rows("""select r.id,r.description title,r.reference,r.status stage,r.required_date due_date,'Requisitions' workspace
+        "PROCUREMENT" -> store.rows("""select r.id,r.description title,r.reference,r.status stage,r.requested_at::date due_date,'Requisitions' workspace
             from procurement_requisitions r where r.status not in ('CLOSED','CANCELLED')
             order by r.required_date nulls last limit 8""")
         "LABORATORY" -> store.rows("""select id,name title,catalogue_or_asset_ref reference,status,
@@ -112,6 +118,9 @@ class WorkbenchDashboard(private val store: WorkbenchStore) {
             'Ethics & Regulatory Links' workspace from compliance_records order by due_date nulls last limit 8""")
         "ADMIN" -> store.rows("""select id,display_name title,email reference,case when active then 'ACTIVE' else 'INACTIVE' end stage,
             null::date due_date,'Users & Roles' workspace from users order by display_name limit 8""")
+        "EXECUTIVE" -> store.rows("""select a.id,a.title,a.reference,a.stage,a.deadline_at::date due_date,'Applications' workspace
+            from applications a where a.stage in ('DIRECTOR_DECISION','INSTITUTIONAL_APPROVAL','APPROVED_FOR_SUBMISSION')
+            order by a.deadline_at nulls last limit 8""")
         "SUPERADMIN" -> store.rows("""select id,message title,event_type reference,severity stage,created_at::date due_date,
             'Security Events' workspace from system_events order by created_at desc limit 8""")
         else -> emptyList()
@@ -125,6 +134,7 @@ class WorkbenchDashboard(private val store: WorkbenchStore) {
         "LABORATORY" -> listOf("Laboratory Oversight","Laboratory Equipment","Maintenance & Calibration","Reagents & Consumables","Calendar")
         "GOVERNANCE" -> listOf("Due Diligence","Ethics & Regulatory Links","Conflicts / Declarations","Compliance Calendar","Calendar")
         "ADMIN" -> listOf("Users & Roles","Forms & Fields","Templates","Workflow Configuration","Audit Log")
+        "EXECUTIVE" -> listOf("Executive Overview","Approvals","Portfolio Analytics","Finance Dashboard","Calendar")
         "SUPERADMIN" -> listOf("System Health","Integration Health","Security Events","Audit Log","Superadmin Console")
         else -> listOf("My Work","Calendar")
     }
