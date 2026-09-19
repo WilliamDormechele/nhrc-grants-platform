@@ -19,11 +19,18 @@ class FundingDiscoveryService(private val store: WorkbenchStore,private val reco
             mapOf("code" to "GRANTS_GOV","name" to "Grants.gov","configured" to true,"requiresKey" to false,"capability" to "Public call search and opportunity details"),
             mapOf("code" to "SIMPLER_GRANTS_GOV","name" to "Simpler.Grants.gov","configured" to client.simplerConfigured(),"requiresKey" to true,"capability" to "Public call search")
         ),"canImport" to actor.hasAny(setOf("GRANTS_OFFICER")),"limitPerRun" to 100,
-            "scheduledDiscoveryEnabled" to false,"discoveryMode" to "ON_DEMAND",
+            "scheduledDiscoveryEnabled" to true,"discoveryMode" to "AUTOMATIC_AND_ON_DEMAND",
+            "profiles" to store.rows("select id,name,source_code,search_term,enabled,interval_hours,last_run_at,next_run_at,last_status,last_message from funding_search_profiles order by name"),
             "runs" to store.rows("select r.id,r.source_code,r.search_term,r.status,r.imported_count,r.refreshed_count,r.skipped_count,r.available_count,r.truncated,r.started_at,r.completed_at,r.failure_message,u.display_name started_by_name from grant_source_runs r left join users u on u.id=r.started_by order by r.started_at desc limit 30"))
     }
     fun import(input: FundingSearchInput,actor: GrantActor): GrantRow {
         actor.requireAny(setOf("GRANTS_OFFICER"))
+        return execute(input,actor)
+    }
+
+    fun importAutomated(input: FundingSearchInput,actor: GrantActor): GrantRow = execute(input,actor)
+
+    private fun execute(input: FundingSearchInput,actor: GrantActor): GrantRow {
         require(input.source in setOf("GRANTS_GOV","SIMPLER_GRANTS_GOV")) { "Choose a configured source" }
         require(input.query.isNotBlank() && input.query.length<=100) { "Enter a search of 1 to 100 characters" }
         require(input.source!="SIMPLER_GRANTS_GOV" || client.simplerConfigured()) { "Simpler.Grants.gov requires an API key in the server environment" }
