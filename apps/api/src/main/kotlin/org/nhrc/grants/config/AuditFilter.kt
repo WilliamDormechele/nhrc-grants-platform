@@ -15,7 +15,7 @@ class AuditFilter(private val jdbc: JdbcTemplate): OncePerRequestFilter() {
         var error:String?=null
         try { filterChain.doFilter(request,response) } catch(ex:Exception){ error=ex.message; throw ex } finally {
             try {
-                jdbc.update("""insert into audit_events(id,event_type,entity_type,entity_id,action,reason,correlation_id,source_ip,user_agent) values (?,?,?,?,?,?,?,?,?)""",
+                jdbc.update("""insert into audit_events(id,event_type,entity_type,entity_id,action,reason,correlation_id,source_ip,user_agent) values (?,?,?,?,?,?,?,?::inet,?)""",
                     UUID.randomUUID(),"HTTP_REQUEST","HTTP_ENDPOINT",request.requestURI,"HTTP_${request.method}",error,
                     request.getHeader("X-Request-Id"),request.remoteAddr,request.getHeader("User-Agent"))
             } catch(_:Exception) { }
