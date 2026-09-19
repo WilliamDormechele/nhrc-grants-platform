@@ -1,5 +1,7 @@
 package org.nhrc.grants.workbench
 
+import org.springframework.web.server.ResponseStatusException
+
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -84,7 +86,8 @@ class GrantRulesTest {
     }
     @Test fun `stage actions cannot skip gates or award technical administrators business power`() {
         assertThrows(IllegalArgumentException::class.java) { GrantRules.requireAction("ASSIGN","DISCOVERED",setOf("GRANTS_OFFICER")) }
-        assertThrows(IllegalArgumentException::class.java) { GrantRules.requireAction("APPROVE","INSTITUTIONAL_APPROVAL",setOf("SUPERADMIN")) }
+        val denied=assertThrows(ResponseStatusException::class.java) { GrantRules.requireAction("APPROVE","INSTITUTIONAL_APPROVAL",setOf("SUPERADMIN")) }
+        assertEquals(403,denied.statusCode.value())
         assertThrows(IllegalArgumentException::class.java) { GrantRules.requireAction("RECORD_OUTCOME","PREPARATION",setOf("GRANTS_OFFICER")) }
         assertEquals("SUBMITTED",GrantRules.requireAction("RECORD_SUBMISSION","APPROVED_FOR_SUBMISSION",setOf("GRANTS_OFFICER")).to)
     }
