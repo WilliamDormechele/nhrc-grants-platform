@@ -70,6 +70,9 @@ with sync_playwright() as p:
         assert page.locator(".brandmark img").evaluate("image => image.complete && image.naturalWidth > 0")
         choose(page, "grants")
         passed("Account selection and official institutional logo load correctly")
+        grants_names = [name.strip() for name in page.locator("nav .navbtn").all_text_contents()]
+        assert "Opportunity Intelligence" in grants_names and "Finance Dashboard" not in grants_names
+        passed("Grants Officer navigation is role-specific")
         page.screenshot(path=str(OUT / "01-home-desktop.png"), full_page=True)
         names = page.locator("nav .navbtn").all_text_contents()
         for name in names:
@@ -79,6 +82,10 @@ with sync_playwright() as p:
         passed(f"All {len(names)} approved navigation entries render without a browser exception")
         catalogue = {item["key"]: item for item in request("/catalogue", "grants")}
         navigate(page, "Opportunity Intelligence")
+        expect(page.get_by_text("Live funding-source APIs", exact=True)).to_be_visible()
+        expect(page.get_by_text("Grants.gov", exact=True)).to_be_visible()
+        expect(page.get_by_role("button", name="Search internet funding calls", exact=True)).to_be_visible()
+        passed("Opportunity Intelligence exposes the live internet funding-source integrations")
         page.get_by_role("button", name="Add funding call", exact=True).click()
         dialog = page.get_by_role("dialog")
         title = "CI browser funding call " + uuid4().hex[:8]
@@ -125,9 +132,37 @@ with sync_playwright() as p:
         expect(page.get_by_role("button", name="Assess partner", exact=True)).to_be_visible()
         passed("Due diligence is connected from institutional navigation")
         choose(page, "finance")
+        finance_names = [name.strip() for name in page.locator("nav .navbtn").all_text_contents()]
+        assert "Finance Dashboard" in finance_names and "Opportunity Intelligence" not in finance_names
+        passed("Finance navigation differs from Grants navigation")
         navigate(page, "Finance Dashboard")
         expect(page.get_by_label("Award currency", exact=True)).to_be_visible()
         page.screenshot(path=str(OUT / "04-finance-desktop.png"), full_page=True)
+
+        choose(page, "fellow")
+        fellow_names = [name.strip() for name in page.locator("nav .navbtn").all_text_contents()]
+        assert "Proposal Workspace" in fellow_names and "Calendar" in fellow_names
+        assert "Users & Roles" not in fellow_names and "Financial Approvals" not in fellow_names
+        passed("Research Fellow has researcher-level navigation without administration or approval workspaces")
+        navigate(page, "Calendar")
+        expect(page.get_by_role("heading", name="Calendar", exact=True)).to_be_visible()
+        expect(page.get_by_role("button", name="Month", exact=True)).to_be_visible()
+        expect(page.get_by_role("button", name="Week", exact=True)).to_be_visible()
+        expect(page.get_by_role("button", name="Agenda", exact=True)).to_be_visible()
+        page.get_by_role("button", name="Agenda", exact=True).click()
+        expect(page.get_by_role("heading", name="Agenda", exact=True)).to_be_visible()
+        passed("Calendar provides senior month, week and agenda views")
+
+        choose(page, "uat_admin")
+        admin_names = [name.strip() for name in page.locator("nav .navbtn").all_text_contents()]
+        assert "Users & Roles" in admin_names and "Organisation Structure" in admin_names
+        assert "Superadmin Console" not in admin_names
+        passed("Business Administrator receives administration workspaces without Superadmin controls")
+
+        choose(page, "uat_superadmin")
+        super_names = [name.strip() for name in page.locator("nav .navbtn").all_text_contents()]
+        assert len(super_names) > len(grants_names) and "Superadmin Console" in super_names and "Finance Dashboard" in super_names
+        passed("Superadmin can see the complete feature navigation")
         choose(page, "scientific")
         navigate(page, "Researcher Profiles")
         page.get_by_label("Search this register", exact=True).fill("CI Scientific Reviewer")
@@ -142,6 +177,9 @@ with sync_playwright() as p:
         page.get_by_role("dialog").get_by_role("button", name="Close dialog", exact=True).click()
         passed("Researchers can maintain their own named profile without acquiring approval powers")
         choose(page, "lab")
+        lab_names = [name.strip() for name in page.locator("nav .navbtn").all_text_contents()]
+        assert "Maintenance & Calibration" in lab_names and "Users & Roles" not in lab_names
+        passed("Laboratory navigation is role-specific")
         navigate(page, "Maintenance & Calibration")
         page.screenshot(path=str(OUT / "05-laboratory-desktop.png"), full_page=True)
         page.set_viewport_size({"width": 390, "height": 844})
