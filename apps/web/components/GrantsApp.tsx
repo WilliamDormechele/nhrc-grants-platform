@@ -1,7 +1,7 @@
 "use client";
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {ChevronDown,Menu} from "lucide-react";
-import {groups} from "./config";
+import {groups,groupsForRoles} from "./config";
 import {Actor,Identity,Resource,Row,human,makeClient} from "./workbench/client";
 import {WorkbenchContext,useLoad,useWorkbench} from "./workbench/context";
 import {ErrorBox,Loading,Notice,Stat} from "./workbench/controls";
@@ -43,11 +43,12 @@ export default function GrantsApp(){
   const leaveAllowed=()=>!document.querySelector('[data-unsaved="true"]')||window.confirm("Discard unsaved proposal changes before leaving this workspace?");
   const go=useCallback((name:string,id?:string)=>{
     if(!leaveAllowed())return;
-    const parent=groups.find(group=>group.items.includes(name));
+    const parent=visibleGroups.find(group=>group.items.includes(name));
     if(name!=="Home"&&!parent){setToast("The requested workspace could not be found.");return;}
     setActive(name);setSelectedId(id);setOpen(parent?.name||null);setMobile(false);window.scrollTo({top:0,behavior:"auto"});
-  },[]);
-  const parent=groups.find(group=>group.items.includes(active));
+  },[visibleGroups]);
+  const visibleGroups=useMemo(()=>groupsForRoles(session?.actor.roles||[]),[session?.actor.roles]);
+  const parent=visibleGroups.find(group=>group.items.includes(active));
   const chooseUser=(id:string)=>{
     if(!leaveAllowed())return;
     setSession(null);setError("");setUatUser(id);setActive("Home");setSelectedId(undefined);
@@ -60,7 +61,7 @@ export default function GrantsApp(){
     {mobile&&<button className="navback" aria-label="Close navigation" onClick={()=>setMobile(false)}/>}
     <aside className={`sidebar ${mobile?"open":""}`}>
       <div className="brand"><button className="brandhome" aria-label="NHRC Grants home" onClick={()=>go("Home")}><span className="brandmark"><img src="/nhrc-logo.svg" alt="Navrongo Health Research Centre"/></span></button><div><b>NHRC Grants</b><small>RESEARCH. ACCOUNTABILITY.</small></div></div>
-      <nav aria-label="Grant management workspaces">{groups.map(group=>{
+      <nav aria-label="Grant management workspaces">{visibleGroups.map(group=>{
         const Icon=group.icon,expanded=open===group.name,selected=parent?.name===group.name;
         return <div className={`navsection ${selected?"activeSection":""}`} key={group.name}>
           <button className={`navtoggle ${selected?"activegroup":""}`} aria-expanded={expanded} onClick={()=>setOpen(expanded?null:group.name)}><span className="groupname"><span className="groupico"><Icon/></span><span>{group.name}</span></span><ChevronDown className={expanded?"rotate":""} size={14}/></button>
@@ -79,7 +80,7 @@ export default function GrantsApp(){
       <main className="main" id="grant-main" tabIndex={-1}>
         {content}
         {!loading&&!error&&usable&&session&&<WorkbenchContext.Provider key={session.actor.id} value={{client,actor:session.actor,catalogue:session.catalogue,go,notify}}>
-          {active==="Home"?<Landing/>:<WorkspaceRouter key={`${active}-${selectedId||""}`} name={active} id={selectedId}/>}
+          {active==="Home"?<Landing groups={visibleGroups}/>:<WorkspaceRouter key={`${active}-${selectedId||""}`} name={active} id={selectedId}/>}
         </WorkbenchContext.Provider>}
         <div className="footnote">NHRC Grants. Saved decisions retain the responsible account and record version. Unconnected services are labelled explicitly; no simulated action is presented as completed.</div>
       </main>
@@ -88,7 +89,7 @@ export default function GrantsApp(){
   </>;
 }
 
-function Landing(){
+function Landing({groups}:{groups:import("./config").Group[]}){
   const {go,catalogue}=useWorkbench();const summary=useLoad<Row>(catalogue.length?"/summary":null);
   const values=summary.data;
   return <>
