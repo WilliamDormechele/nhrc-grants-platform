@@ -15,7 +15,7 @@ object GrantRules {
     val draftStages = setOf("DISCOVERED","ELIGIBILITY_REVIEW","DIRECTOR_DECISION","READY_FOR_ASSIGNMENT","ASSIGNED","ACCEPTED","PREPARATION")
     val narrativeEditableStages = setOf("ACCEPTED","PREPARATION")
     val reviewRoles = mapOf(
-        "SCIENTIFIC" to setOf("RESEARCHER","DIRECTOR"),
+        "SCIENTIFIC" to setOf("RESEARCHER","RESEARCH_FELLOW","DIRECTOR"),
         "FINANCE" to setOf("FINANCE_OFFICER","FINANCE_APPROVER"),
         "GRANTS" to setOf("GRANTS_OFFICER"),
         "GOVERNANCE" to setOf("GOVERNANCE_OFFICER")
@@ -25,10 +25,10 @@ object GrantRules {
         GrantTransition("RECORD_ELIGIBILITY","Record eligibility assessment",setOf("ELIGIBILITY_REVIEW"),"DIRECTOR_DECISION",setOf("GRANTS_OFFICER"),evidenceRequired=true),
         GrantTransition("DIRECTOR_DECISION","Record pursue / do not pursue decision",setOf("DIRECTOR_DECISION"),"READY_FOR_ASSIGNMENT",setOf("DIRECTOR"),true),
         GrantTransition("ASSIGN","Assign researcher",setOf("READY_FOR_ASSIGNMENT"),"ASSIGNED",setOf("GRANTS_OFFICER")),
-        GrantTransition("ACCEPT","Accept assignment",setOf("ASSIGNED"),"ACCEPTED",setOf("RESEARCHER")),
-        GrantTransition("DECLINE","Decline assignment",setOf("ASSIGNED"),"READY_FOR_ASSIGNMENT",setOf("RESEARCHER")),
-        GrantTransition("START_PREPARATION","Start proposal preparation",setOf("ACCEPTED"),"PREPARATION",setOf("RESEARCHER","GRANTS_OFFICER")),
-        GrantTransition("REQUEST_REVIEW","Request internal review",setOf("PREPARATION"),"INTERNAL_REVIEW",setOf("RESEARCHER","GRANTS_OFFICER")),
+        GrantTransition("ACCEPT","Accept assignment",setOf("ASSIGNED"),"ACCEPTED",setOf("RESEARCHER","RESEARCH_FELLOW")),
+        GrantTransition("DECLINE","Decline assignment",setOf("ASSIGNED"),"READY_FOR_ASSIGNMENT",setOf("RESEARCHER","RESEARCH_FELLOW")),
+        GrantTransition("START_PREPARATION","Start proposal preparation",setOf("ACCEPTED"),"PREPARATION",setOf("RESEARCHER","RESEARCH_FELLOW","GRANTS_OFFICER")),
+        GrantTransition("REQUEST_REVIEW","Request internal review",setOf("PREPARATION"),"INTERNAL_REVIEW",setOf("RESEARCHER","RESEARCH_FELLOW","GRANTS_OFFICER")),
         GrantTransition("COMPLETE_REVIEW","Record assigned review",setOf("INTERNAL_REVIEW"),"INTERNAL_REVIEW",reviewRoles.values.flatten().toSet()),
         GrantTransition("APPROVE","Authorise submission package",setOf("INSTITUTIONAL_APPROVAL"),"APPROVED_FOR_SUBMISSION",setOf("DIRECTOR"),true),
         GrantTransition("RETURN","Return for revision",setOf("INSTITUTIONAL_APPROVAL","APPROVED_FOR_SUBMISSION"),"PREPARATION",setOf("DIRECTOR")),
