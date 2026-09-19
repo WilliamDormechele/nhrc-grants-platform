@@ -12,6 +12,7 @@ import {ExecutiveWorkspace,FinanceWorkspace,PersonalWorkspace} from "./OverviewW
 import {registers} from "./workspaceRegisters";
 import ConnectedOperationalWorkspace,{hasConnectedOperationalWorkspace} from "./ConnectedOperationalWorkspace";
 import CalendarWorkspace from "./CalendarWorkspace";
+import ConfigurationWorkspace from "./ConfigurationWorkspace";
 
 export default function WorkspaceRouter({name,id}:{name:string;id?:string}){
   const {go}=useWorkbench();
@@ -24,7 +25,9 @@ export default function WorkspaceRouter({name,id}:{name:string;id?:string}){
   if(name==="Calendar")return <CalendarWorkspace/>;
   if(["My Work","Notifications"].includes(name))return <PersonalWorkspace name={name}/>;
   if(["Procurement Dashboard","Procurement Tracking","Laboratory Oversight","Laboratory Procurement","Laboratory Compliance","Financial Approvals","Financial Closeout"].includes(name))return <OperationalOverview name={name}/>;
-  if(["Forms & Fields","Workflow Configuration","Approval Rules"].includes(name))return <FormCatalogue name={name}/>;
+  if(name==="Forms & Fields")return <ConfigurationWorkspace kind="forms"/>;
+  if(name==="Templates")return <ConfigurationWorkspace kind="templates"/>;
+  if(["Workflow Configuration","Approval Rules"].includes(name))return <FormCatalogue name={name}/>;
   if(hasConnectedOperationalWorkspace(name))return <ConnectedOperationalWorkspace name={name}/>;
   const options=registers[name];
   if(options)return <RecordWorkspace key={`${name}-${id||""}`} {...options} title={name} selectedId={id}>
