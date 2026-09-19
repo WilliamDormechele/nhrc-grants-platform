@@ -167,7 +167,7 @@ class WorkbenchRecords(private val store: WorkbenchStore, private val auth: Work
         val r=resource(key);val before=id?.let { store.one(r.table,it,true) }
         val values=GrantRules.validate(r.fields,input.values)
         if(r.key=="researchers"&&before==null&&!actor.hasAny(WorkbenchCatalogue.profileWriters)) {
-            actor.requireAny(setOf("RESEARCHER"));require(values["user_id"]==actor.id.toString()) { "You may create only your own researcher profile" }
+            actor.requireAny(WorkbenchCatalogue.researchRoles);require(values["user_id"]==actor.id.toString()) { "You may create only your own researcher profile" }
         }else auth.requireWrite(r,before,actor)
         if(before!=null) {
             store.checkVersion(before,input.version)
