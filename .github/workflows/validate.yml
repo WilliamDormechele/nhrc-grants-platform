@@ -4,9 +4,15 @@ on:
     branches: [develop]
   pull_request:
     branches: [main, develop]
+concurrency:
+  group: grants-validation-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
 jobs:
   build-test-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     env:
       POSTGRES_DB: nhrc_grants
       POSTGRES_USER: nhrc_grants
@@ -16,8 +22,21 @@ jobs:
       APP_ENV: test
       AUTH_MODE: development
       API_PORT: 8080
+      NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4
+      - name: Check all web types
+        run: |
+          cd apps/web
+          npm install
+          npx tsc --noEmit
+      - name: Report web dependency advisories
+        if: always()
+        run: |
+          mkdir -p test-results
+          cd apps/web
+          npm audit --omit=dev --json > ../../test-results/web-audit.json || true
+          cat ../../test-results/web-audit.json
       - name: API unit tests
         run: docker run --rm -v "$PWD/apps/api:/workspace" -w /workspace gradle:8.10-jdk21 gradle test --no-daemon
       - name: Build images
@@ -42,9 +61,26 @@ jobs:
           curl -fsS http://localhost:8080/api/awards
           curl -fsS http://localhost:8080/api/finance/summary
           curl -fsS http://localhost:8080/api/organisation/roles
+      - name: Isolated workflow and permission tests
+        run: python3 tests/workbench_integration.py
+      - name: Install browser test tools
+        run: |
+          python3 -m pip install playwright==1.58.0
+          python3 -m playwright install --with-deps chromium
+      - name: Connected browser workflows
+        run: python3 tests/workbench_browser.py
+      - name: Record validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grants-validation-evidence
+          path: |
+            test-results/
+            apps/api/build/test-results/test/
+          retention-days: 14
       - name: Logs on failure
         if: failure()
         run: docker compose logs --no-color
-      - name: Stop stack
+      - name: Stop isolated test stack
         if: always()
         run: docker compose down -v
