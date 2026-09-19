@@ -12,7 +12,7 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/workbench")
-class WorkbenchController(private val auth: WorkbenchAuth,private val records: WorkbenchRecords,private val applications: WorkbenchApplications,private val discovery: FundingDiscoveryService,private val oversight: WorkbenchOversight) {
+class WorkbenchController(private val auth: WorkbenchAuth,private val records: WorkbenchRecords,private val applications: WorkbenchApplications,private val discovery: FundingDiscoveryService,private val oversight: WorkbenchOversight,private val operations: WorkbenchOperations) {
     @GetMapping("/identity") fun identity(request: HttpServletRequest)=auth.identity(request)
     @GetMapping("/catalogue") fun catalogue(request: HttpServletRequest)=records.catalogue(auth.actor(request))
     @GetMapping("/records/{key}") fun list(@PathVariable key: String,@RequestParam(defaultValue="") q: String,@RequestParam(defaultValue="0") page: Int,@RequestParam(defaultValue="50") size: Int,request: HttpServletRequest)=records.list(key,auth.actor(request),q,page,size)
@@ -35,6 +35,7 @@ class WorkbenchController(private val auth: WorkbenchAuth,private val records: W
     @GetMapping("/opportunities/{id}/source") fun source(@PathVariable id: UUID,request: HttpServletRequest)=discovery.sourceRecord(id,auth.actor(request))
     @PostMapping("/opportunities/{id}/source-details") fun details(@PathVariable id: UUID,request: HttpServletRequest)=discovery.fetchDetails(id,auth.actor(request))
     @GetMapping("/opportunities/{id}/matches") fun matches(@PathVariable id: UUID,request: HttpServletRequest)=discovery.matches(id,auth.actor(request))
+    @GetMapping("/operations/{key}") fun operations(@PathVariable key: String,request: HttpServletRequest)=operations.list(key,auth.actor(request))
     @GetMapping("/summary") fun summary(request: HttpServletRequest)=oversight.summary(auth.actor(request))
     @GetMapping("/finance") fun finance(request: HttpServletRequest)=oversight.finance(auth.actor(request))
     @GetMapping("/personal") fun personal(request: HttpServletRequest)=oversight.personal(auth.actor(request))
