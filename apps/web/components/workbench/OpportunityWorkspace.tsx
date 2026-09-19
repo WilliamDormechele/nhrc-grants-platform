@@ -11,13 +11,13 @@ export default function OpportunityWorkspace({id}:{id?:string}){
   const [importing,setImporting]=useState(false),[refresh,setRefresh]=useState(0);
   const available:Row[]=(sources.data?.sources||[]).filter((source:Row)=>source.configured);
   const runs:Row[]=sources.data?.runs||[];
-  return <RecordWorkspace key={refresh} resourceKey="opportunities" title="Funding discovery and intelligent matching" description="Bring funding calls into a review queue, inspect the original conditions and identify relevant researcher expertise." createLabel="Add funding call" selectedId={id} columns={["title","call_type","source_reference","deadline_date","amount_max"]} extra={row=><OpportunityEvidence row={row}/>}>
+  return <RecordWorkspace key={refresh} resourceKey="opportunities" title="Opportunity Intelligence" description="Search live approved funding sources, import calls into NHRC review, preserve provenance, and route eligible opportunities to researchers." createLabel="Add funding call" selectedId={id} columns={["title","call_type","source_reference","deadline_date","amount_max"]} extra={row=><OpportunityEvidence row={row}/>}>
     {sources.error&&<ErrorBox message={sources.error} retry={sources.reload}/>}
     <div className="grid">
-      <Panel title="Approved source connections" note="On-demand searches import up to 100 calls for human review."><div className="panelbody">
-        {sources.loading?<Loading/>:(sources.data?.sources||[]).map((source:Row)=><div className="item" key={source.code}><div><h3>{source.name}</h3><p className="tiny">{source.capability}</p></div><Badge value={source.configured?"CONFIGURED":"KEY_REQUIRED"}/></div>)}
-        {sources.data?.canImport&&<button className="btn primary" disabled={!available.length} onClick={()=>setImporting(true)}>Search and import calls</button>}
-        <p className="tiny">Additional portals, scheduled searches and grant-alert emails are not connected. No funder submission is sent from this screen.</p>
+      <Panel title="Live funding-source APIs" note="On-demand internet searches import up to 100 calls into NHRC review. No external submission is sent."><div className="panelbody">
+        {sources.loading?<Loading/>:(sources.data?.sources||[]).map((source:Row)=><div className="item" key={source.code}><div><h3>{source.name}</h3><p className="tiny">{source.capability}</p><p className="tiny">{source.requiresKey?"API key required for live search":"Keyless live search"}</p></div><Badge value={source.configured?"LIVE_READY":"NOT_CONFIGURED"}/></div>)}
+        {sources.data?.canImport&&<button className="btn primary" disabled={!available.length} onClick={()=>setImporting(true)}>Search internet funding calls</button>}
+        <p className="tiny">Grants.gov is available without a key. Simpler.Grants.gov appears as not configured until SIMPLER_GRANTS_API_KEY is set for the API container. Additional portals, scheduled searches and grant-alert emails are not connected.</p>
       </div></Panel>
       <Panel title="Matching safeguards" note="Explainable assistance, not a prediction of funding success."><div className="panelbody checks">
         <p><strong>Eligibility first</strong>Check applicant, location, scope, deadline, budget and partnership requirements against the original call.</p>
