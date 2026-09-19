@@ -40,6 +40,7 @@ export default function GrantsApp(){
   },[client,environment]);
   useEffect(()=>{if(!toast)return;const timer=window.setTimeout(()=>setToast(""),9000);return()=>window.clearTimeout(timer);},[toast]);
   const notify=useCallback((message:string)=>setToast(message),[]);
+  const visibleGroups=useMemo(()=>groupsForRoles(session?.actor.roles||[]),[session?.actor.roles]);
   const leaveAllowed=()=>!document.querySelector('[data-unsaved="true"]')||window.confirm("Discard unsaved proposal changes before leaving this workspace?");
   const go=useCallback((name:string,id?:string)=>{
     if(!leaveAllowed())return;
@@ -47,7 +48,6 @@ export default function GrantsApp(){
     if(name!=="Home"&&!parent){setToast("The requested workspace could not be found.");return;}
     setActive(name);setSelectedId(id);setOpen(parent?.name||null);setMobile(false);window.scrollTo({top:0,behavior:"auto"});
   },[visibleGroups]);
-  const visibleGroups=useMemo(()=>groupsForRoles(session?.actor.roles||[]),[session?.actor.roles]);
   const parent=visibleGroups.find(group=>group.items.includes(active));
   const chooseUser=(id:string)=>{
     if(!leaveAllowed())return;
