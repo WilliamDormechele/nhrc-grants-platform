@@ -6,6 +6,7 @@ import {Actor,Identity,Resource,Row,human,makeClient} from "./workbench/client";
 import {WorkbenchContext,useLoad,useWorkbench} from "./workbench/context";
 import {ErrorBox,Loading,Notice,Stat} from "./workbench/controls";
 import WorkspaceRouter from "./workbench/WorkspaceRouter";
+import RoleDashboard from "./workbench/RoleDashboard";
 import "./workbench/workbench.css";
 
 type Session={actor:Actor;catalogue:Resource[]};
@@ -94,6 +95,7 @@ function Landing({groups}:{groups:import("./config").Group[]}){
   const values=summary.data;
   return <>
     <section className="landinghero"><div className="eyebrow light">NHRC GRANTS</div><h1>Research funding, managed as one institutional lifecycle.</h1><p>Senior-level oversight from funding discovery through proposal development, award management, financial control, compliance, reporting and closeout.</p><div className="actions"><button className="btn primary" onClick={()=>go("Executive Overview")}>Open Executive Overview</button><button className="btn" onClick={()=>go("My Work")}>Open My Work</button></div></section>
+    <RoleDashboard/>
     {summary.error&&<ErrorBox message={summary.error} retry={summary.reload}/>}
     {values&&<div className="stats homeStats"><Stat label="Funding calls" value={values.opportunities}/><Stat label="Applications" value={values.applications}/><Stat label="Active awards" value={values.activeAwards}/><Stat label="My pending reviews" value={values.myPendingReviews}/></div>}
     <div className="landinggrid">{groups.map(group=>{const Icon=group.icon;return <button className="landingcard" key={group.name} onClick={()=>go(group.items[0])}><span className="groupico large"><Icon/></span><h2>{group.name}</h2><p>{descriptions[group.name]||group.items.slice(0,4).join(", ")}</p><span className="tiny">{group.items.length} workspaces · Open section</span></button>;})}</div>
