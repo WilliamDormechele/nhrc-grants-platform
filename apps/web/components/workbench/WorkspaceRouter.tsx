@@ -11,6 +11,7 @@ import DiligenceWorkspace from "./DiligenceWorkspace";
 import {ExecutiveWorkspace,FinanceWorkspace,PersonalWorkspace} from "./OverviewWorkspace";
 import {registers} from "./workspaceRegisters";
 import ConnectedOperationalWorkspace,{hasConnectedOperationalWorkspace} from "./ConnectedOperationalWorkspace";
+import CalendarWorkspace from "./CalendarWorkspace";
 
 export default function WorkspaceRouter({name,id}:{name:string;id?:string}){
   const {go}=useWorkbench();
@@ -20,7 +21,8 @@ export default function WorkspaceRouter({name,id}:{name:string;id?:string}){
   if(["Executive Overview","Portfolio Analytics","Pipeline Analytics"].includes(name))return <ExecutiveWorkspace name={name}/>;
   if(["Award Register","Award Setup"].includes(name))return <AwardWorkspace name={name} id={id}/>;
   if(["Finance Dashboard","Financial Monitoring","Award Budgets","Budget vs Actual"].includes(name))return <FinanceWorkspace name={name}/>;
-  if(["My Work","Notifications","Calendar"].includes(name))return <PersonalWorkspace name={name}/>;
+  if(name==="Calendar")return <CalendarWorkspace/>;
+  if(["My Work","Notifications"].includes(name))return <PersonalWorkspace name={name}/>;
   if(["Procurement Dashboard","Procurement Tracking","Laboratory Oversight","Laboratory Procurement","Laboratory Compliance","Financial Approvals","Financial Closeout"].includes(name))return <OperationalOverview name={name}/>;
   if(["Forms & Fields","Workflow Configuration","Approval Rules"].includes(name))return <FormCatalogue name={name}/>;
   if(hasConnectedOperationalWorkspace(name))return <ConnectedOperationalWorkspace name={name}/>;
