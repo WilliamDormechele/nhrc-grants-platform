@@ -94,10 +94,19 @@ def seed_test_users():
               "finance": "UAT Finance Officer", "proc": "UAT Procurement Officer", "lab": "UAT Laboratory Officer",
               "scientific": "CI Scientific Reviewer", "reviewer": "CI Independent Grants Reviewer",
               "approver": "CI Finance Approver", "proc2": "CI Independent Procurement Officer",
-              "governance": "CI Governance Officer", "admin": "CI Administrator", "superadmin": "CI Technical Superadmin"}
+              "governance": "CI Governance Officer", "admin": "CI Administrator", "superadmin": "CI Technical Superadmin",
+              "fellow": "UAT Research Fellow", "uat_admin": "UAT Business Administrator", "uat_superadmin": "UAT Superadmin"}
     USERS.update({alias: names[label] for alias, label in labels.items()})
     create("researchers", {"user_id": USERS["scientific"], "expertise": ["Population health"],
                            "methods": ["Surveillance"], "summary": "Fictional reviewer profile for CI."}, "scientific")
+    fellow_catalogue = {item["key"]: item for item in request("/catalogue", "fellow")}
+    check("researchers" in fellow_catalogue and "applications" in fellow_catalogue,
+          "Research Fellow receives researcher-level records without business approval authority")
+    request("/operations/users", "fellow", expected=(403,))
+    check(True, "Research Fellow cannot open administration user controls")
+    super_catalogue = request("/catalogue", "uat_superadmin")
+    check(len(super_catalogue) >= len(request("/catalogue", "grants")),
+          "Superadmin can inspect the complete resource catalogue")
 
 def application_journey(kind: str, call: dict):
     app = create("applications", {"title": f"CI {kind} complete workflow", "opportunity_id": call["id"], "application_type": kind})
