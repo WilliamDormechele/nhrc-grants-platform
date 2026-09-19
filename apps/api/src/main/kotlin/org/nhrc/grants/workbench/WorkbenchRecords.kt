@@ -73,7 +73,7 @@ class WorkbenchRecords(private val store: WorkbenchStore, private val auth: Work
                 coalesce((select jsonb_agg(distinct r.code) from user_roles ur join roles r on r.id=ur.role_id join organisation_units ou on ou.id=ur.scope_id where ur.user_id=u.id and ur.scope_type='INSTITUTION' and ou.code='NHRC' and (ur.valid_from is null or ur.valid_from<=now()) and (ur.valid_until is null or ur.valid_until>now())),'[]'::jsonb) roles
                 from users u where u.active and u.display_name ilike ? order by u.display_name,u.id limit 201""","%$query%")
             "awards" -> {
-                val staff=actor.hasAny(WorkbenchCatalogue.platformReaders-"RESEARCHER")
+                val staff=actor.hasAny(WorkbenchCatalogue.platformReaders-WorkbenchCatalogue.researchRoles)
                 store.rows("select id,reference || ' | ' || title label,currency,status from awards where title ilike ? and (? or principal_investigator_id=?) order by title,id limit 201","%$query%",staff,actor.id)
             }
             else -> {
@@ -118,7 +118,7 @@ class WorkbenchRecords(private val store: WorkbenchStore, private val auth: Work
                 "users" -> require(store.rows("select id from users where id=? and active",target).isNotEmpty()) { "${f.label} is not an active user" }
                 "awards" -> {
                     val award=store.one("awards",target)
-                    if(!actor.hasAny(WorkbenchCatalogue.platformReaders-"RESEARCHER")&&store.uuid(award,"principal_investigator_id")!=actor.id)throw ResponseStatusException(HttpStatus.FORBIDDEN,"You are not assigned to this award")
+                    if(!actor.hasAny(WorkbenchCatalogue.platformReaders-WorkbenchCatalogue.researchRoles)&&store.uuid(award,"principal_investigator_id")!=actor.id)throw ResponseStatusException(HttpStatus.FORBIDDEN,"You are not assigned to this award")
                     require(award["status"] !in setOf("CLOSED","CANCELLED")) { "This award is closed" }
                     values["currency"]?.let { require(it==award["currency"]) { "The currency must match the award; no automatic currency conversion is applied" } }
                 }
