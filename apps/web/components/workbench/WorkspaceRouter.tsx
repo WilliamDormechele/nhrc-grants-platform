@@ -10,6 +10,7 @@ import AwardWorkspace from "./AwardWorkspace";
 import DiligenceWorkspace from "./DiligenceWorkspace";
 import {ExecutiveWorkspace,FinanceWorkspace,PersonalWorkspace} from "./OverviewWorkspace";
 import {registers} from "./workspaceRegisters";
+import ConnectedOperationalWorkspace,{hasConnectedOperationalWorkspace} from "./ConnectedOperationalWorkspace";
 
 export default function WorkspaceRouter({name,id}:{name:string;id?:string}){
   const {go}=useWorkbench();
@@ -22,6 +23,7 @@ export default function WorkspaceRouter({name,id}:{name:string;id?:string}){
   if(["My Work","Notifications","Calendar"].includes(name))return <PersonalWorkspace name={name}/>;
   if(["Procurement Dashboard","Procurement Tracking","Laboratory Oversight","Laboratory Procurement","Laboratory Compliance","Financial Approvals","Financial Closeout"].includes(name))return <OperationalOverview name={name}/>;
   if(["Forms & Fields","Workflow Configuration","Approval Rules"].includes(name))return <FormCatalogue name={name}/>;
+  if(hasConnectedOperationalWorkspace(name))return <ConnectedOperationalWorkspace name={name}/>;
   const options=registers[name];
   if(options)return <RecordWorkspace key={`${name}-${id||""}`} {...options} title={name} selectedId={id}>
     {["Partner Directory","Suppliers & Due Diligence","Partners & Subawards"].includes(name)&&<div className="actions" style={{marginBottom:20}}><button className="btn" onClick={()=>go("Due Diligence")}>Open due diligence assessments</button></div>}
