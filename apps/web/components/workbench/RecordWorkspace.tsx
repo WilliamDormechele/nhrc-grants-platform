@@ -2,7 +2,7 @@
 import {useState,type ReactNode} from "react";
 import {Action,Field,Page,Row,dateText,human,moneyText,payload} from "./client";
 import {useLoad,useResource,useWorkbench} from "./context";
-import {Badge,DecisionDialog,Details,Empty,ErrorBox,FormDialog,Heading,Loading,Modal,Notice,Panel,Stat,Table} from "./controls";
+import {Badge,DecisionDialog,Details,Empty,ErrorBox,FormDialog,Heading,Loading,Modal,Notice,Panel,Stat,Table,type Column} from "./controls";
 
 export type RegisterOptions={resourceKey:string;title:string;description:string;createLabel:string;layout?:"table"|"cards"|"calendar";columns?:string[];filter?:(row:Row)=>boolean;notice?:string;children?:ReactNode;extra?:(row:Row,reload:()=>void)=>ReactNode;selectedId?:string;onOpen?:(row:Row)=>void};
 export default function RecordWorkspace(props:RegisterOptions){
@@ -13,7 +13,7 @@ export default function RecordWorkspace(props:RegisterOptions){
   const rows=(list.data?.items||[]).filter(props.filter||(()=>true));
   const open=(row:Row)=>props.onOpen?props.onOpen(row):setSelected(row.id);
   const names=props.columns||resource.fields.filter(field=>["text","select","date","money","tags","email"].includes(field.kind)).slice(0,5).map(field=>field.name);
-  const columns=names.map(name=>{const f=resource.fields.find(field=>field.name===name);return {key:name,label:f?.label||human(name),render:(row:Row)=>f?.kind==="date"?dateText(row[name]):f?.kind==="money"?moneyText(row[name],row.currency):human(row[name])};});
+  const columns:Column[]=names.map(name=>{const f=resource.fields.find(field=>field.name===name);return {key:name,label:f?.label||human(name),render:(row:Row)=>f?.kind==="date"?dateText(row[name]):f?.kind==="money"?moneyText(row[name],row.currency):human(row[name])};});
   if(resource.statusColumn)columns.push({key:resource.statusColumn,label:"Status",render:(row:Row)=><Badge value={row[resource.statusColumn!]}/>});
   return <><Heading title={props.title} description={props.description}>{resource.canCreate&&<button className="btn primary" onClick={()=>setCreating(true)}>{props.createLabel}</button>}<button className="btn" onClick={list.reload} disabled={list.loading}>Refresh</button></Heading>{props.notice&&<Notice>{props.notice}</Notice>}{props.children}
     <div className="filters"><div className="field"><label htmlFor={`search-${props.resourceKey}`}>Search this register</label><input id={`search-${props.resourceKey}`} type="search" value={search} maxLength={200} placeholder="Search recorded information" onChange={event=>{setSearch(event.target.value);setPage(0);}}/></div><span className="subtle">{list.data?`${list.data.total} matching records; page ${page+1}`:""}</span></div>
