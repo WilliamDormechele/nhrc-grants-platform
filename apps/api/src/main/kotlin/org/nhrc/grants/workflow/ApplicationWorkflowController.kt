@@ -37,6 +37,15 @@ class ApplicationWorkflowController(private val jdbc: JdbcTemplate) {
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND,"Application not found")
         val from=stages.indexOf(current); val to=stages.indexOf(req.stage)
         if(to < from || to > from+1) throw ResponseStatusException(HttpStatus.CONFLICT,"Stage transition must follow the governed workflow")
+        if(req.stage=="ASSIGNED") throw ResponseStatusException(HttpStatus.CONFLICT,"Use the researcher assignment action for this stage")
+        if(req.stage=="ACCEPTED") throw ResponseStatusException(HttpStatus.CONFLICT,"Use the researcher assignment response for this stage")
+        if(req.stage=="SUBMITTED") throw ResponseStatusException(HttpStatus.CONFLICT,"Use the controlled submission action for this stage")
+        if(req.stage=="AWARDED") throw ResponseStatusException(HttpStatus.CONFLICT,"Use successful-application conversion to create the award")
+        if(req.stage=="INSTITUTIONAL_APPROVAL"){
+            val reviews=jdbc.queryForObject("select count(*) from application_reviews where application_id=?",Long::class.java,id)?:0
+            val incomplete=jdbc.queryForObject("select count(*) from application_reviews where application_id=? and status<>'APPROVED'",Long::class.java,id)?:0
+            if(reviews==0L || incomplete>0L) throw ResponseStatusException(HttpStatus.CONFLICT,"All required internal reviews must be approved before institutional approval")
+        }
         jdbc.update("update applications set stage=?, updated_at=now() where id=?",req.stage,id)
         jdbc.update("insert into application_stage_history(application_id,from_stage,to_stage,note,changed_by) values (?,?,?,?,?)",id,current,req.stage,req.note,req.actorId)
         return mapOf("id" to id,"from" to current,"stage" to req.stage)
