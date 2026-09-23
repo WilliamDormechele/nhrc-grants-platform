@@ -112,10 +112,15 @@ class PreGrantController(private val jdbc:JdbcTemplate){
 
  @PostMapping("/applications/{id}/submission") @Transactional
  fun recordSubmission(@PathVariable id:UUID,@RequestBody r:SubmissionRecord):Map<String,Any>{
+  val current=jdbc.queryForObject("select stage from applications where id=?",String::class.java,id)
+    ?: throw ResponseStatusException(HttpStatus.NOT_FOUND,"Application not found")
+  if(current!="INSTITUTIONAL_APPROVAL") throw ResponseStatusException(HttpStatus.CONFLICT,"Application must reach institutional approval before submission")
   val outstanding=jdbc.queryForObject("select count(*) from application_quality_checks where application_id=? and status not in ('PASSED','NOT_APPLICABLE')",Long::class.java,id)?:0
   if(outstanding>0) throw ResponseStatusException(HttpStatus.CONFLICT,"Final quality checks are incomplete")
+  val pendingApproval=jdbc.queryForObject("select count(*) from approvals where entity_type='APPLICATION' and entity_id=? and status='PENDING'",Long::class.java,id)?:0
+  if(pendingApproval>0) throw ResponseStatusException(HttpStatus.CONFLICT,"Application has pending institutional approvals")
   jdbc.update("""update applications set stage='SUBMITTED',submitted_at=?,submission_acknowledgement=?,submission_proof_storage_key=?,updated_at=now() where id=?""",r.submittedAt,r.acknowledgement,r.proofStorageKey,id)
-  jdbc.update("insert into application_stage_history(application_id,from_stage,to_stage,note) select id,stage,'SUBMITTED','Submission recorded' from applications where id=?",id)
+  jdbc.update("insert into application_stage_history(application_id,from_stage,to_stage,note) values (?,?,'SUBMITTED','Submission recorded')",id,current)
   return mapOf("id" to id,"stage" to "SUBMITTED","submittedAt" to r.submittedAt)
  }
 
