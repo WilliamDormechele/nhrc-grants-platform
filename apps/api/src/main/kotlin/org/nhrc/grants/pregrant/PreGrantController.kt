@@ -39,6 +39,7 @@ class PreGrantController(private val jdbc:JdbcTemplate){
    "application" to app,
    "requirements" to jdbc.queryForList("select r.*,u.display_name owner from application_requirements r left join users u on u.id=r.owner_user_id where r.application_id=? order by r.required desc,r.due_at nulls last,r.created_at",id),
    "team" to jdbc.queryForList("select t.*,u.display_name internal_name from application_team_members t left join users u on u.id=t.user_id where t.application_id=? and t.active=true order by t.created_at",id),
+   "assignments" to jdbc.queryForList("select aa.*,u.display_name researcher from application_assignments aa join users u on u.id=aa.researcher_id where aa.application_id=? order by aa.assigned_at desc",id),
    "portals" to jdbc.queryForList("select p.*,u.display_name owner from funder_portal_records p left join users u on u.id=p.owner_user_id where p.application_id=? order by p.created_at",id),
    "qualityChecks" to jdbc.queryForList("select q.*,u.display_name checked_by_name from application_quality_checks q left join users u on u.id=q.checked_by where q.application_id=? order by q.check_type",id),
    "communications" to jdbc.queryForList("select * from funder_communications where application_id=? order by communication_at desc",id),
