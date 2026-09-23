@@ -1,0 +1,182 @@
+"use client";
+
+import {useEffect,useMemo,useState} from "react";
+import {api} from "./config";
+
+type Row=Record<string,any>;
+type Action={kind:string;row?:Row}|null;
+
+const stages=["DISCOVERED","ELIGIBILITY_REVIEW","DIRECTOR_DECISION","ASSIGNED","ACCEPTED","PREPARATION","INTERNAL_REVIEW","INSTITUTIONAL_APPROVAL","SUBMITTED","OUTCOME_RECORDED","AWARDED","CLOSED"];
+
+async function request(path:string,options?:RequestInit){
+  const r=await fetch(api+path,{...options,headers:{"Content-Type":"application/json",...(options?.headers||{})}});
+  const text=await r.text();
+  if(!r.ok) throw new Error(text||("Request failed: "+r.status));
+  return text?JSON.parse(text):{};
+}
+function pretty(v:any){return String(v??"").replaceAll("_"," ").toLowerCase().replace(/\b\w/g,c=>c.toUpperCase())}
+function date(v:any){if(!v)return "—";const d=new Date(v);return Number.isNaN(d.valueOf())?String(v):d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})}
+function money(v:any,c:any){if(v===null||v===undefined)return "—";return `${c||""} ${Number(v).toLocaleString("en-GB",{maximumFractionDigits:2})}`.trim()}
+function badge(s:any){const x=String(s??"").toUpperCase();const cls=/APPROVED|PASSED|ELIGIBLE|COMPLETE|ACTIVE|OPEN|SUBMITTED|ACCEPTED/.test(x)?"good":/PENDING|CONDITIONAL|PREPARATION|IN_PROGRESS|REVIEW|NOT_STARTED/.test(x)?"warn":/FAILED|REJECTED|INELIGIBLE|BLOCKED|RETURNED|OVERDUE/.test(x)?"bad":"blue";return <span className={"badge "+cls}>{pretty(s||"Not recorded")}</span>}
+function Stat({label,value,note}:{label:string;value:any;note:string}){return <div className="stat"><div className="label">{label}</div><div className="value">{value??0}</div><div className="note">{note}</div></div>}
+function Panel({title,sub,children,action}:{title:string;sub?:string;children:any;action?:any}){return <section className="panel"><div className="panelHead"><div><h3>{title}</h3>{sub&&<p>{sub}</p>}</div>{action}</div>{children}</section>}
+function Empty({text}:{text:string}){return <div className="empty">{text}</div>}
+
+export default function PreAwardWorkspace({name,primary,refresh}:{name:string;primary:any;refresh:()=>void}){
+  const [opportunities,setOpportunities]=useState<Row[]>(Array.isArray(primary)&&name.includes("Opportunity")?primary:[]);
+  const [applications,setApplications]=useState<Row[]>(Array.isArray(primary)&&name==="Applications"?primary:[]);
+  const [users,setUsers]=useState<Row[]>([]);
+  const [researchers,setResearchers]=useState<Row[]>([]);
+  const [matches,setMatches]=useState<Row[]>([]);
+  const [eois,setEois]=useState<Row[]>([]);
+  const [approvals,setApprovals]=useState<Row[]>([]);
+  const [selectedAppId,setSelectedAppId]=useState<string>("");
+  const [workspace,setWorkspace]=useState<any>(null);
+  const [action,setAction]=useState<Action>(null);
+  const [busy,setBusy]=useState(false);
+  const [message,setMessage]=useState("");
+
+  async function loadBase(){
+    const [o,a,u,r,m,e,p]=await Promise.all([
+      request("/api/opportunities"),
+      request("/api/applications"),
+      request("/api/admin/users"),
+      request("/api/people/researchers"),
+      request("/api/opportunity-intelligence/matches"),
+      request("/api/pregrant/expressions-of-interest"),
+      request("/api/approvals")
+    ]);
+    setOpportunities(o);setApplications(a);setUsers(u);setResearchers(r);setMatches(m);setEois(e);setApprovals(p);
+    if(!selectedAppId&&a.length)setSelectedAppId(a[0].id);
+  }
+  async function loadWorkspace(id:string){
+    if(!id){setWorkspace(null);return}
+    setWorkspace(await request("/api/pregrant/applications/"+id+"/workspace"));
+  }
+  async function reload(){
+    setMessage("");
+    await loadBase();
+    if(selectedAppId)await loadWorkspace(selectedAppId);
+    refresh();
+  }
+  useEffect(()=>{loadBase().catch(e=>setMessage(e.message))},[]);
+  useEffect(()=>{if(selectedAppId)loadWorkspace(selectedAppId).catch(e=>setMessage(e.message))},[selectedAppId]);
+
+  const selectedApp=applications.find(x=>x.id===selectedAppId)||null;
+  const page=(()=>{
+    if(name==="Opportunity Intelligence")return <OpportunityIntelligence rows={opportunities} matches={matches} eois={eois} act={setAction}/>;
+    if(name==="Eligibility & Fit")return <Eligibility rows={opportunities} act={setAction}/>;
+    if(name==="Applications")return <Applications rows={applications} act={setAction} select={setSelectedAppId}/>;
+    if(name==="Proposal Workspace")return <ApplicationHub mode="proposal" app={selectedApp} applications={applications} workspace={workspace} select={setSelectedAppId} act={setAction} run={run} users={users} researchers={researchers}/>;
+    if(name==="Budget Builder")return <ApplicationHub mode="budget" app={selectedApp} applications={applications} workspace={workspace} select={setSelectedAppId} act={setAction} run={run} users={users} researchers={researchers}/>;
+    if(name==="Internal Review")return <ApplicationHub mode="review" app={selectedApp} applications={applications} workspace={workspace} select={setSelectedAppId} act={setAction} run={run} users={users} researchers={researchers}/>;
+    if(name==="Approvals")return <Approvals rows={approvals} act={setAction}/>;
+    if(name==="Submissions")return <ApplicationHub mode="submission" app={selectedApp} applications={applications} workspace={workspace} select={setSelectedAppId} act={setAction} run={run} users={users} researchers={researchers}/>;
+    return <Empty text="This pre-award workspace is not configured."/>;
+  })();
+
+  async function run(path:string,method:string,body?:any){
+    setBusy(true);setMessage("");
+    try{await request(path,{method,body:body===undefined?undefined:JSON.stringify(body)});await reload();setMessage("Action completed and the institutional record was updated.");}
+    catch(e:any){setMessage(e.message)}
+    finally{setBusy(false)}
+  }
+
+  return <div className="preawardShell">
+    {message&&<div className={message.startsWith("Action completed")?"notice":"notice warn"}>{message}</div>}
+    {page}
+    {action&&<ActionSheet action={action} users={users} researchers={researchers} close={()=>setAction(null)} done={async(path,method,body)=>{setBusy(true);setMessage("");try{await request(path,{method,body:JSON.stringify(body)});setAction(null);await reload();setMessage("Action completed and the institutional record was updated.");}catch(e:any){setMessage(e.message)}finally{setBusy(false)}} busy={busy}/>}
+  </div>
+}
+
+function OpportunityIntelligence({rows,matches,eois,act}:{rows:Row[];matches:Row[];eois:Row[];act:(a:Action)=>void}){
+  return <><div className="stats"><Stat label="Calls in discovery queue" value={rows.length} note="Institutional funding opportunities"/><Stat label="High institutional fit" value={rows.filter(r=>Number(r.institutional_fit_score)>=85).length} note="85% or higher"/><Stat label="Human-confirmed matches" value={matches.filter(m=>m.human_confirmed).length} note="Researcher routing support"/><Stat label="Expressions of interest" value={eois.length} note="Researcher/team interest recorded"/></div>
+  <Panel title="Opportunity intelligence queue" sub="Screen calls, record eligibility and move suitable opportunities into the application pipeline.">
+    <div className="tableWrap"><table><thead><tr><th>Opportunity</th><th>Funder</th><th>Source</th><th>Fit</th><th>Eligibility</th><th>Deadline</th><th>Actions</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><b>{r.title}</b></td><td>{r.funder||"—"}</td><td>{pretty(r.source_type)}</td><td>{badge((r.institutional_fit_score??"—")+"% fit")}</td><td>{badge(r.eligibility_status)}</td><td>{date(r.deadline_at)}</td><td><div className="rowActions"><button className="linkbutton" onClick={()=>act({kind:"eligibility",row:r})}>Eligibility</button><button className="linkbutton" onClick={()=>act({kind:"application",row:r})}>Register application</button><button className="linkbutton" onClick={()=>act({kind:"eoi",row:r})}>EOI</button></div></td></tr>)}</tbody></table></div>
+  </Panel>
+  <div className="grid"><Panel title="Researcher matching" sub="Explainable decision support with human confirmation.">{matches.length?matches.slice(0,8).map(m=><div className="item" key={m.opportunity_id+"-"+m.researcher_profile_id}><div><div className="itemtitle">{m.researcher}</div><div className="itemmeta">{m.opportunity_title}</div></div><div>{badge((m.fit_score??"—")+"% fit")}</div></div>):<Empty text="No researcher matches are recorded yet."/>}</Panel>
+  <Panel title="Expression of interest register" sub="Researcher interest is retained before full proposal registration.">{eois.length?eois.slice(0,8).map(e=><div className="item" key={e.id}><div><div className="itemtitle">{e.researcher}</div><div className="itemmeta">{e.opportunity} · {pretty(e.proposed_role)}</div></div>{badge(e.status)}</div>):<Empty text="No expressions of interest recorded."/ >}</Panel></div></>
+}
+
+function Eligibility({rows,act}:{rows:Row[];act:(a:Action)=>void}){
+ return <><div className="stats"><Stat label="Awaiting review" value={rows.filter(r=>!r.eligibility_status||["NOT_REVIEWED","PENDING"].includes(r.eligibility_status)).length} note="Human decision required"/><Stat label="Eligible" value={rows.filter(r=>r.eligibility_status==="ELIGIBLE").length} note="Hard checks passed"/><Stat label="Conditional" value={rows.filter(r=>r.eligibility_status==="CONDITIONAL").length} note="Conditions require resolution"/><Stat label="Ineligible" value={rows.filter(r=>r.eligibility_status==="INELIGIBLE").length} note="Retained for institutional history"/></div>
+ <div className="grid"><Panel title="Eligibility and fit queue" sub="Hard funder eligibility remains distinct from strategic relevance.">{rows.map(r=><div className="item" key={r.id}><div><div className="itemtitle">{r.title}</div><div className="itemmeta">{r.funder||"No funder recorded"} · Deadline {date(r.deadline_at)}</div></div><div className="rowActions">{badge(r.eligibility_status)}<button className="btn small" onClick={()=>act({kind:"eligibility",row:r})}>Review</button></div></div>)}</Panel>
+ <Panel title="Assessment controls" sub="The approved NHRC gate before proposal effort is committed."><div className="checks"><p><strong>Institutional eligibility</strong>Organisation type, geography and scheme restrictions.</p><p><strong>Applicant eligibility</strong>Career stage, role and applicant-specific requirements.</p><p><strong>Funding requirements</strong>Ceilings, eligible costs, indirect costs and currency rules.</p><p><strong>Submission requirements</strong>Documents, portal steps and internal deadlines.</p><p><strong>Human confirmation</strong>Fit scores assist review; they do not override funder rules.</p></div></Panel></div></>
+}
+
+function Applications({rows,act,select}:{rows:Row[];act:(a:Action)=>void;select:(id:string)=>void}){
+ const cols=["ASSIGNED","PREPARATION","INTERNAL_REVIEW","SUBMITTED"];
+ return <><div className="stats"><Stat label="Tracked applications" value={rows.length} note="One institutional pre-grant register"/><Stat label="In preparation" value={rows.filter(r=>r.stage==="PREPARATION").length} note="Proposal development"/><Stat label="Internal review" value={rows.filter(r=>r.stage==="INTERNAL_REVIEW").length} note="Controlled review gate"/><Stat label="Submitted" value={rows.filter(r=>r.stage==="SUBMITTED").length} note="Funder outcome tracking"/></div>
+ <div className="flow">{cols.map(st=><section className="flowbox" key={st}><h2>{pretty(st)}</h2><div className="flowcount">{rows.filter(r=>r.stage===st).length}</div>{rows.filter(r=>r.stage===st).map(r=><button className="recordCard" key={r.id} onClick={()=>select(r.id)}><b>{r.title}</b><span>{r.reference}</span><em>{r.progress_percent}% progress · {date(r.deadline_at)}</em></button>)}</section>)}</div>
+ <Panel title="Full institutional application register" sub="Every proposed application receives a reference and remains in institutional history."><div className="tableWrap"><table><thead><tr><th>Reference</th><th>Application</th><th>Lead researcher</th><th>Stage</th><th>Progress</th><th>Deadline</th><th>Action</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.reference}</td><td><b>{r.title}</b></td><td>{r.lead_researcher||"—"}</td><td>{badge(r.stage)}</td><td>{r.progress_percent}%</td><td>{date(r.deadline_at)}</td><td><button className="linkbutton" onClick={()=>{select(r.id);act({kind:"advance",row:r})}}>Workflow action</button></td></tr>)}</tbody></table></div></Panel></>
+}
+
+function AppSelector({applications,value,onChange}:{applications:Row[];value:string;onChange:(v:string)=>void}){return <div className="filters"><div className="field"><label>Application</label><select value={value} onChange={e=>onChange(e.target.value)}>{applications.map(a=><option key={a.id} value={a.id}>{a.reference} · {a.title}</option>)}</select></div></div>}
+
+function ApplicationHub({mode,app,applications,workspace,select,act,run,users,researchers}:{mode:string;app:Row|null;applications:Row[];workspace:any;select:(id:string)=>void;act:(a:Action)=>void;run:(path:string,method:string,body?:any)=>Promise<void>;users:Row[];researchers:Row[]}){
+ if(!app)return <Empty text="No application is available in the institutional register."/>;
+ const w=workspace||{};const reqs:wRow[]=w.requirements||[];const quality:wRow[]=w.qualityChecks||[];const reviews:wRow[]=w.reviews||[];const budget:wRow[]=w.budget||[];const docs:wRow[]=w.documents||[];const team:wRow[]=w.team||[];const portals:wRow[]=w.portals||[];const comms:wRow[]=w.communications||[];const assignments:wRow[]=w.assignments||[];
+ const current=stages.indexOf(app.stage);const next=current>=0&&current<stages.length-1?stages[current+1]:null;
+ return <><AppSelector applications={applications} value={app.id} onChange={select}/><div className="appSummary"><div><span className="eyebrow">{app.reference}</span><h2>{app.title}</h2><p className="subtle">{app.lead_researcher||"Lead researcher not assigned"} · deadline {date(app.deadline_at)}</p></div><div className="actions">{badge(app.stage)}{next&&app.stage!=="SUBMITTED"&&<button className="btn" onClick={()=>act({kind:"advance",row:app})}>Advance workflow</button>}</div></div>
+ <Panel title="Governed pre-award lifecycle" sub="Every gate is retained separately in the application history."><div className="pipeline">{stages.slice(0,11).map((s,i)=><div className={"step "+(i<current?"done":i===current?"current":"")} key={s}><span className="n">{i+1}</span><b>{pretty(s)}</b><small>{i<current?"Completed / passed":i===current?"Current gate":"Not yet reached"}</small></div>)}</div></Panel>
+ {mode==="proposal"&&<><div className="stats"><Stat label="Requirements complete" value={reqs.filter(r=>["COMPLETE","NOT_APPLICABLE"].includes(r.status)).length+"/"+reqs.length} note="Application checklist"/><Stat label="Team members" value={team.length} note="PI, Co-I, partner and collaborator roles"/><Stat label="Controlled documents" value={docs.length} note="Versioned application records"/><Stat label="Portal records" value={portals.length} note="Funder portal tracking"/></div>
+ <div className="grid"><Panel title="Application requirements checklist" sub="Documents, institutional information, CVs, letters, approvals and certifications." action={<button className="btn small" onClick={()=>act({kind:"team",row:app})}>Add team member</button>}>{reqs.map(r=><div className="item" key={r.id}><div><div className="itemtitle">{r.title}</div><div className="itemmeta">{pretty(r.requirement_type)} · {r.owner||"Unassigned"}</div></div><div className="rowActions">{badge(r.status)}<button className="linkbutton" onClick={()=>run("/api/pregrant/requirements/"+r.id,"PATCH",{status:r.status==="COMPLETE"?"IN_PROGRESS":"COMPLETE"})}>{r.status==="COMPLETE"?"Reopen":"Complete"}</button></div></div>)}</Panel>
+ <Panel title="Proposal team" sub="Internal and external team roles are recorded against the application.">{team.length?team.map(t=><div className="item" key={t.id}><div><div className="itemtitle">{t.internal_name||t.external_name||"Team member"}</div><div className="itemmeta">{pretty(t.role_code)} · {t.organisation||"NHRC"}</div></div>{badge(t.active?"ACTIVE":"INACTIVE")}</div>):<Empty text="No proposal team members have been added."/ >}<button className="btn small" onClick={()=>act({kind:"team",row:app})}>Add team member</button></Panel></div>
+ <div className="grid"><Panel title="Funder portal management" sub="Portal ownership and requirements, without storing passwords.">{portals.length?portals.map(p=><div className="item" key={p.id}><div><div className="itemtitle">{p.portal_name}</div><div className="itemmeta">{p.portal_application_reference||"Reference not recorded"} · {p.owner||"Unassigned"}</div></div>{badge(p.registration_status)}</div>):<Empty text="No funder portal record."/ >}<button className="btn small" onClick={()=>act({kind:"portal",row:app})}>Add portal</button></Panel>
+ <Panel title="Funder communications" sub="Clarifications, additional-information requests and outcome correspondence.">{comms.length?comms.slice(0,6).map(c=><div className="item" key={c.id}><div><div className="itemtitle">{c.subject}</div><div className="itemmeta">{pretty(c.direction)} · {date(c.communication_at)}</div></div>{badge(c.communication_type)}</div>):<Empty text="No funder communication recorded."/ >}<button className="btn small" onClick={()=>act({kind:"communication",row:app})}>Record communication</button></Panel></div></>}
+ {mode==="budget"&&<><div className="stats"><Stat label="Funder request" value={money(budget.reduce((a:number,b:Row)=>a+Number(b.funder_amount||0),0),budget[0]?.currency)} note="Application budget lines"/><Stat label="NHRC contribution" value={money(budget.reduce((a:number,b:Row)=>a+Number(b.nhrc_contribution||0),0),budget[0]?.currency)} note="Institutional contribution"/><Stat label="Partner amount" value={money(budget.reduce((a:number,b:Row)=>a+Number(b.partner_amount||0),0),budget[0]?.currency)} note="Partner share"/><Stat label="Budget lines" value={budget.length} note="Scenario detail"/></div><Panel title="Budget builder" sub="Personnel, activities, equipment, travel, indirect costs, currencies and contributions." action={<button className="btn primary" onClick={()=>act({kind:"budget",row:app})}>Add budget line</button>}><div className="tableWrap"><table><thead><tr><th>Category</th><th>Description</th><th>Year</th><th className="num">Quantity</th><th className="num">Unit cost</th><th className="num">Funder</th><th className="num">NHRC</th><th className="num">Partner</th></tr></thead><tbody>{budget.map(b=><tr key={b.id}><td>{b.category}</td><td>{b.description||"—"}</td><td>{b.year_no}</td><td className="num">{b.quantity}</td><td className="num">{money(b.unit_cost,b.currency)}</td><td className="num">{money(b.funder_amount,b.currency)}</td><td className="num">{money(b.nhrc_contribution,b.currency)}</td><td className="num">{money(b.partner_amount,b.currency)}</td></tr>)}</tbody></table></div></Panel></>}
+ {mode==="review"&&<><div className="stats"><Stat label="Reviews" value={reviews.length} note="Scientific, Grants, Finance, Legal and Management"/><Stat label="Approved" value={reviews.filter(r=>r.status==="APPROVED").length} note="Completed review gates"/><Stat label="Pending" value={reviews.filter(r=>r.status==="PENDING").length} note="Action required"/><Stat label="Returned" value={reviews.filter(r=>r.status==="RETURNED").length} note="Revision required"/></div><Panel title="Internal review coordination" sub="Review types remain distinct and traceable before institutional approval." action={<button className="btn primary" onClick={()=>act({kind:"review",row:app})}>Add review</button>}>{reviews.length?reviews.map(r=><div className="item" key={r.id}><div><div className="itemtitle">{pretty(r.review_type)} review</div><div className="itemmeta">{r.reviewer||"Reviewer not assigned"} · {r.comments||"No comment"}</div></div><div className="rowActions">{badge(r.status)}{r.status==="PENDING"&&<><button className="linkbutton" onClick={()=>run("/api/pregrant/reviews/"+r.id,"PATCH",{status:"APPROVED",comments:r.comments})}>Approve</button><button className="linkbutton" onClick={()=>run("/api/pregrant/reviews/"+r.id,"PATCH",{status:"RETURNED",comments:r.comments})}>Return</button></>}</div></div>):<Empty text="No internal reviews recorded."/ >}</Panel></>}
+ {mode==="submission"&&<><div className="stats"><Stat label="Quality checks passed" value={quality.filter(q=>["PASSED","NOT_APPLICABLE"].includes(q.status)).length+"/"+quality.length} note="Final application quality gate"/><Stat label="Submission status" value={pretty(app.stage)} note="Institutional application stage"/><Stat label="Funder outcome" value={pretty(app.funder_outcome||"Pending")} note="Retained after submission"/><Stat label="Communications" value={comms.length} note="Post-submission correspondence"/></div>
+ <div className="grid"><Panel title="Final application quality check" sub="Completeness, consistency, compliance, attachments, approvals and readiness.">{quality.map(q=><div className="item" key={q.id}><div><div className="itemtitle">{q.title}</div><div className="itemmeta">{pretty(q.check_type)}</div></div><div className="rowActions">{badge(q.status)}<button className="linkbutton" onClick={()=>run("/api/pregrant/quality-checks/"+q.id,"PATCH",{status:q.status==="PASSED"?"PENDING":"PASSED"})}>{q.status==="PASSED"?"Reopen":"Pass"}</button></div></div>)}</Panel>
+ <Panel title="Submission and outcome" sub="Final submission is blocked until governed readiness conditions are met."><div className="checks"><p><strong>Institutional approval stage</strong>{app.stage==="INSTITUTIONAL_APPROVAL"||app.stage==="SUBMITTED"?"Reached":"Not reached"}</p><p><strong>Final quality checks</strong>{quality.every(q=>["PASSED","NOT_APPLICABLE"].includes(q.status))?"Complete":"Incomplete"}</p><p><strong>Submission proof</strong>{workspace?.application?.submission_acknowledgement||"Not recorded"}</p></div><div className="actions"><button className="btn primary" onClick={()=>act({kind:"submission",row:app})}>Record submission</button><button className="btn" onClick={()=>act({kind:"outcome",row:app})}>Record outcome</button>{app.funder_outcome==="AWARDED"&&<button className="btn" onClick={()=>act({kind:"award",row:app})}>Convert to award</button>}</div></Panel></div></>}
+ <div className="grid"><Panel title="Assignment history" sub="Researcher routing and acceptance remain part of the record.">{assignments.length?assignments.map(a=><div className="item" key={a.id}><div><div className="itemtitle">{a.researcher}</div><div className="itemmeta">{date(a.assigned_at)} · {a.response_note||"No response note"}</div></div>{badge(a.response)}</div>):<Empty text="No researcher assignment history."/ >}</Panel>
+ <Panel title="Stage history" sub="Institutional lifecycle changes are retained.">{(w.stageHistory||[]).slice(0,8).map((h:Row)=><div className="item" key={h.id}><div><div className="itemtitle">{pretty(h.from_stage||"Start")} → {pretty(h.to_stage)}</div><div className="itemmeta">{date(h.changed_at)} · {h.changed_by_name||"System / unassigned"}</div></div></div>)}</Panel></div></>
+}
+type wRow=Row;
+
+function Approvals({rows,act}:{rows:Row[];act:(a:Action)=>void}){return <><div className="stats"><Stat label="Awaiting decision" value={rows.filter(r=>r.status==="PENDING").length} note="Institutional decisions"/><Stat label="Approved" value={rows.filter(r=>r.status==="APPROVED").length} note="Completed decisions"/><Stat label="Returned" value={rows.filter(r=>r.status==="RETURNED").length} note="Revision required"/><Stat label="Rejected" value={rows.filter(r=>r.status==="REJECTED").length} note="Closed decisions"/></div><Panel title="Internal decision queue" sub="Requester, assigned authority and decision remain separate."><div className="tableWrap"><table><thead><tr><th>Approval</th><th>Entity</th><th>Requested by</th><th>Assigned to</th><th>Status</th><th>Action</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{pretty(r.approval_type)}</td><td>{pretty(r.entity_type)}</td><td>{r.requested_by_name||"—"}</td><td>{r.assigned_user_name||r.required_role_code||"Role queue"}</td><td>{badge(r.status)}</td><td>{r.status==="PENDING"?<button className="linkbutton" onClick={()=>act({kind:"approvalDecision",row:r})}>Review decision</button>:"—"}</td></tr>)}</tbody></table></div></Panel><div className="notice warn">The requester cannot decide their own approval. Scientific review, Finance clearance, institutional approval and funder decisions remain separate records.</div></>}
+
+function ActionSheet({action,users,researchers,close,done,busy}:{action:NonNullable<Action>;users:Row[];researchers:Row[];close:()=>void;done:(path:string,method:string,body:any)=>Promise<void>;busy:boolean}){
+ const [form,setForm]=useState<Record<string,any>>({});
+ const row=action.row||{};
+ const set=(k:string,v:any)=>setForm(x=>({...x,[k]:v}));
+ const input=(label:string,key:string,type="text",required=false)=><label>{label}<input type={type} required={required} value={form[key]??""} onChange={e=>set(key,e.target.value)}/></label>;
+ const textarea=(label:string,key:string)=><label>{label}<textarea rows={4} value={form[key]??""} onChange={e=>set(key,e.target.value)}/></label>;
+ const userSelect=(label:string,key:string,required=false)=><label>{label}<select required={required} value={form[key]??""} onChange={e=>set(key,e.target.value)}><option value="">Select</option>{users.map(u=><option key={u.id} value={u.id}>{u.display_name} · {u.roles||u.organisation_unit||"NHRC"}</option>)}</select></label>;
+ const researcherSelect=(label:string,key:string)=><label>{label}<select required value={form[key]??""} onChange={e=>set(key,e.target.value)}><option value="">Select researcher</option>{researchers.map(r=><option key={r.id} value={r.researcher_user_id}>{r.display_name} · {r.unit||"NHRC"}</option>)}</select></label>;
+ async function submit(e:any){e.preventDefault();let path="",method="POST",body:any={};switch(action.kind){
+  case "eligibility":path="/api/opportunities/"+row.id+"/eligibility";body={decision:form.decision||"ELIGIBLE",rationale:form.rationale,conditions:form.conditions||null,reviewedBy:form.actor||null};break;
+  case "application":path="/api/applications";body={opportunityId:row.id,title:form.title||row.title,deadlineAt:row.deadline_at||null,ownerUserId:form.actor||null};break;
+  case "eoi":path="/api/pregrant/expressions-of-interest";body={opportunityId:row.id,researcherId:form.researcherId,proposedRole:form.proposedRole||"PI",teamSummary:form.teamSummary||null,note:form.note||null};break;
+  case "team":path="/api/pregrant/applications/"+row.id+"/team";body={userId:form.userId||null,externalName:form.externalName||null,externalEmail:form.externalEmail||null,organisation:form.organisation||null,roleCode:form.roleCode||"CO_INVESTIGATOR",responsibility:form.responsibility||null};break;
+  case "budget":path="/api/proposals/"+row.id+"/budget";body={category:form.category,description:form.description||null,yearNo:Number(form.yearNo||1),quantity:Number(form.quantity||1),unitCost:Number(form.unitCost||0),currency:(form.currency||"GBP").toUpperCase(),funderAmount:Number(form.funderAmount||0),nhrcContribution:Number(form.nhrcContribution||0),partnerAmount:Number(form.partnerAmount||0)};break;
+  case "review":path="/api/proposals/"+row.id+"/reviews";body={reviewType:form.reviewType||"SCIENTIFIC",reviewerId:form.reviewerId||null,comments:form.comments||null};break;
+  case "portal":path="/api/pregrant/applications/"+row.id+"/portals";body={portalName:form.portalName,portalUrl:form.portalUrl||null,portalApplicationReference:form.portalRef||null,ownerUserId:form.ownerUserId||null,portalDeadlineAt:form.portalDeadline?new Date(form.portalDeadline).toISOString():null,requirementsNote:form.requirementsNote||null};break;
+  case "communication":path="/api/pregrant/applications/"+row.id+"/communications";body={communicationType:form.communicationType||"CLARIFICATION",direction:form.direction||"INBOUND",subject:form.subject,communicationAt:form.communicationAt?new Date(form.communicationAt).toISOString():new Date().toISOString(),contactName:form.contactName||null,contactEmail:form.contactEmail||null,summary:form.summary||null,recordedBy:form.recordedBy||null};break;
+  case "advance":{const i=stages.indexOf(row.stage);const next=i>=0&&i<stages.length-1?stages[i+1]:null;if(!next)return;path="/api/applications/"+row.id+"/stage";body={stage:next,note:form.note||"Workflow advanced in UAT",actorId:form.actor||null};break}
+  case "approval":path="/api/approvals";body={entityType:"APPLICATION",entityId:row.id,approvalType:form.approvalType||"INSTITUTIONAL",assignedUserId:form.assignedUserId||null,requestedBy:form.requestedBy||null};break;
+  case "approvalDecision":path="/api/approvals/"+row.id+"/decision";body={decision:form.decision||"APPROVED",decidedBy:form.decidedBy||null,note:form.note||null};break;
+  case "submission":path="/api/pregrant/applications/"+row.id+"/submission";body={submittedAt:new Date().toISOString(),acknowledgement:form.acknowledgement||null,proofStorageKey:form.proofStorageKey||null};break;
+  case "outcome":path="/api/applications/"+row.id+"/outcome";body={outcome:form.outcome||"AWARDED"};break;
+  case "award":path="/api/applications/"+row.id+"/convert-to-award";body={reference:form.reference,startDate:form.startDate||null,endDate:form.endDate||null,currency:(form.currency||"GBP").toUpperCase(),totalAward:Number(form.totalAward||0),nhrcAllocation:Number(form.nhrcAllocation||0),partnerAllocation:Number(form.partnerAllocation||0)};break;
+  default:return}
+  await done(path,method,body)
+ }
+ const title:{[k:string]:string}={eligibility:"Record eligibility decision",application:"Register application",eoi:"Researcher/team expression of interest",team:"Add proposal team member",budget:"Add budget line",review:"Add internal review",portal:"Add funder portal record",communication:"Record funder communication",advance:"Advance application workflow",approval:"Request institutional approval",approvalDecision:"Record approval decision",submission:"Record grant submission",outcome:"Record funder outcome",award:"Convert successful application to award"};
+ return <div className="drawerBackdrop" onClick={close}><aside className="drawer actionDrawer" onClick={e=>e.stopPropagation()}><button className="close" onClick={close}>Close</button><span className="eyebrow">CONTROLLED ACTION</span><h2>{title[action.kind]||"Application action"}</h2><p className="subtle">{row.title||row.application_title||row.reference||""}</p><form className="form" onSubmit={submit}>
+ {action.kind==="eligibility"&&<><label>Decision<select value={form.decision||"ELIGIBLE"} onChange={e=>set("decision",e.target.value)}><option>ELIGIBLE</option><option>CONDITIONAL</option><option>INELIGIBLE</option></select></label>{textarea("Rationale","rationale")}{textarea("Conditions, if any","conditions")}{userSelect("Reviewed by","actor")}</>}
+ {action.kind==="application"&&<>{input("Application title","title","text",false)}{userSelect("Grants owner","actor")}</>}
+ {action.kind==="eoi"&&<>{researcherSelect("Researcher","researcherId")}<label>Proposed role<select value={form.proposedRole||"PI"} onChange={e=>set("proposedRole",e.target.value)}><option value="PI">Principal Investigator</option><option value="CO_PI">Co-PI</option><option value="CO_INVESTIGATOR">Co-Investigator</option><option value="TEAM_MEMBER">Team Member</option></select></label>{textarea("Proposed team / collaboration","teamSummary")}{textarea("Note","note")}</>}
+ {action.kind==="team"&&<>{userSelect("Internal NHRC user","userId")}{input("External member name","externalName")}{input("External email","externalEmail","email")}{input("Organisation","organisation")}<label>Role<select value={form.roleCode||"CO_INVESTIGATOR"} onChange={e=>set("roleCode",e.target.value)}><option value="PI">PI</option><option value="CO_PI">Co-PI</option><option value="CO_INVESTIGATOR">Co-Investigator</option><option value="COLLABORATOR">Collaborator</option><option value="CONSULTANT">Consultant</option><option value="PARTNER">Partner representative</option></select></label>{textarea("Responsibility","responsibility")}</>}
+ {action.kind==="budget"&&<>{input("Category","category","text",true)}{textarea("Description","description")}{input("Year","yearNo","number")}{input("Quantity","quantity","number")}{input("Unit cost","unitCost","number")} {input("Currency","currency","text")}{input("Funder amount","funderAmount","number")}{input("NHRC contribution","nhrcContribution","number")}{input("Partner amount","partnerAmount","number")}</>}
+ {action.kind==="review"&&<><label>Review type<select value={form.reviewType||"SCIENTIFIC"} onChange={e=>set("reviewType",e.target.value)}><option>SCIENTIFIC</option><option>ADMINISTRATIVE</option><option>FINANCE</option><option>LEGAL</option><option>MANAGEMENT</option><option>GRANTS</option></select></label>{userSelect("Reviewer","reviewerId")}{textarea("Instructions / comments","comments")}</>}
+ {action.kind==="portal"&&<>{input("Portal name","portalName","text",true)}{input("Portal URL","portalUrl","url")}{input("Portal application reference","portalRef")}{userSelect("Portal owner","ownerUserId")}{input("Portal deadline","portalDeadline","datetime-local")}{textarea("Portal-specific requirements","requirementsNote")}</>}
+ {action.kind==="communication"&&<><label>Direction<select value={form.direction||"INBOUND"} onChange={e=>set("direction",e.target.value)}><option>INBOUND</option><option>OUTBOUND</option></select></label>{input("Communication type","communicationType")}{input("Subject","subject","text",true)}{input("Date/time","communicationAt","datetime-local")}{input("Funder contact","contactName")}{input("Contact email","contactEmail","email")}{textarea("Summary","summary")}{userSelect("Recorded by","recordedBy")}</>}
+ {action.kind==="advance"&&<>{userSelect("Actor","actor")}{textarea("Workflow note","note")}<div className="notice">Current stage: <b>{pretty(row.stage)}</b>. The next governed stage is <b>{pretty(stages[stages.indexOf(row.stage)+1]||"End")}</b>.</div></>}
+ {action.kind==="approval"&&<>{input("Approval type","approvalType")}{userSelect("Assigned approver","assignedUserId")}{userSelect("Requested by","requestedBy")}</>}
+ {action.kind==="approvalDecision"&&<><label>Decision<select value={form.decision||"APPROVED"} onChange={e=>set("decision",e.target.value)}><option>APPROVED</option><option>RETURNED</option><option>REJECTED</option></select></label>{userSelect("Decision made by","decidedBy",true)}{textarea("Decision note","note")}</>}
+ {action.kind==="submission"&&<>{input("Submission acknowledgement / receipt","acknowledgement")}{input("Proof storage reference","proofStorageKey")}<div className="notice warn">Submission is accepted only after institutional approval, completed quality checks and no pending application approval.</div></>}
+ {action.kind==="outcome"&&<><label>Funder outcome<select value={form.outcome||"AWARDED"} onChange={e=>set("outcome",e.target.value)}><option>AWARDED</option><option>UNSUCCESSFUL</option><option>WITHDRAWN</option></select></label></>}
+ {action.kind==="award"&&<>{input("Award reference","reference","text",true)}{input("Start date","startDate","date")}{input("End date","endDate","date")}{input("Currency","currency","text",true)}{input("Total award","totalAward","number",true)}{input("NHRC allocation","nhrcAllocation","number",true)}{input("Partner allocation","partnerAllocation","number")}</>}
+ <div className="actions"><button type="button" className="btn" onClick={close}>Cancel</button><button className="btn primary" disabled={busy}>{busy?"Saving…":"Save controlled action"}</button></div></form></aside></div>
+}
