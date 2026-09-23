@@ -85,8 +85,8 @@ if ($v11 -eq "grant intake profiles and review controls|-1618236750" -or $v11 -e
 $v12 = docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -At -F "|" -c "SELECT description,checksum FROM flyway_schema_history WHERE version='012' AND success=TRUE LIMIT 1;"
 Assert-Native "Reading Flyway V012 history"
 $v12 = ($v12 | Out-String).Trim()
-if ($v12 -eq "reconcile nhrc pregrant schema|905675409") {
-    docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -v ON_ERROR_STOP=1 -c "DELETE FROM flyway_schema_history WHERE version='012' AND success=TRUE AND description='reconcile nhrc pregrant schema' AND checksum=905675409;"
+if ($v12 -eq "reconcile nhrc pregrant schema|905675409" -or $v12 -eq "workspace record versions and submission packages|905675409") {
+    docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -v ON_ERROR_STOP=1 -c "DELETE FROM flyway_schema_history WHERE version='012' AND success=TRUE AND checksum=905675409 AND description IN ('reconcile nhrc pregrant schema','workspace record versions and submission packages');"
     Assert-Native "Removing obsolete UAT V012 history"
     Write-Host "Obsolete V012 history removed; canonical V012 will run normally." -ForegroundColor Green
 } elseif ([string]::IsNullOrWhiteSpace($v12) -or $v12 -eq "converge nhrc pregrant schema|182670125") {
