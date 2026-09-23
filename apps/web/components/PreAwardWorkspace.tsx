@@ -85,7 +85,7 @@ export default function PreAwardWorkspace({name,primary,refresh}:{name:string;pr
   return <div className="preawardShell">
     {message&&<div className={message.startsWith("Action completed")?"notice":"notice warn"}>{message}</div>}
     {page}
-    {action&&<ActionSheet action={action} users={users} researchers={researchers} close={()=>setAction(null)} done={async(path,method,body)=>{setBusy(true);setMessage("");try{await request(path,{method,body:JSON.stringify(body)});setAction(null);await reload();setMessage("Action completed and the institutional record was updated.");}catch(e:any){setMessage(e.message)}finally{setBusy(false)}} busy={busy}/>}
+    {action&&<ActionSheet action={action} users={users} researchers={researchers} close={()=>setAction(null)} done={async(path,method,body)=>{setBusy(true);setMessage("");try{await request(path,{method,body:JSON.stringify(body)});setAction(null);await reload();setMessage("Action completed and the institutional record was updated.");}catch(e:any){setMessage(e.message)}finally{setBusy(false)}}} busy={busy}/>}
   </div>
 }
 
