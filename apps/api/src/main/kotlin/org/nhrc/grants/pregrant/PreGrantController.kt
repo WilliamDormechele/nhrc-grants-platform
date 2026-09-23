@@ -71,6 +71,21 @@ class PreGrantController(private val jdbc:JdbcTemplate){
   return mapOf("id" to cid)
  }
 
+ @GetMapping("/requirements")
+ fun requirements()=jdbc.queryForList("""select r.*,a.reference application_reference,a.title application_title,u.display_name owner from application_requirements r join applications a on a.id=r.application_id left join users u on u.id=r.owner_user_id order by case r.status when 'BLOCKED' then 0 when 'IN_PROGRESS' then 1 when 'NOT_STARTED' then 2 else 3 end,r.due_at nulls last""")
+
+ @GetMapping("/portals")
+ fun portals()=jdbc.queryForList("""select p.*,a.reference application_reference,a.title application_title,u.display_name owner from funder_portal_records p join applications a on a.id=p.application_id left join users u on u.id=p.owner_user_id order by p.portal_deadline_at nulls last,p.created_at desc""")
+
+ @GetMapping("/quality-checks")
+ fun qualityChecks()=jdbc.queryForList("""select q.*,a.reference application_reference,a.title application_title,u.display_name checked_by_name from application_quality_checks q join applications a on a.id=q.application_id left join users u on u.id=q.checked_by order by a.reference,q.check_type""")
+
+ @GetMapping("/communications")
+ fun communications()=jdbc.queryForList("""select c.*,a.reference application_reference,a.title application_title from funder_communications c join applications a on a.id=c.application_id order by c.communication_at desc""")
+
+ @GetMapping("/handovers")
+ fun handovers()=jdbc.queryForList("""select h.*,a.reference application_reference,a.title application_title,w.reference award_reference from award_handovers h join applications a on a.id=h.application_id left join awards w on w.id=h.award_id order by coalesce(h.accepted_at,h.prepared_at) desc nulls last""")
+
  @GetMapping("/analytics")
  fun analytics():Map<String,Any> = mapOf(
   "opportunities" to jdbc.queryForObject("select count(*) from opportunities",Long::class.java)!!,
