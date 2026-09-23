@@ -17,6 +17,12 @@ class FlywayMigrationSafetyTest {
     }
 
     @Test
+    fun `repeatable convergence migration is present`() {
+        val repeatable = File("src/main/resources/db/migration/R__converge_nhrc_pregrant_schema.sql")
+        assertTrue(repeatable.isFile, "Repeatable pre-grant convergence migration is missing")
+    }
+
+    @Test
     fun `Flyway versions are contiguous through current schema`() {
         val root = File("src/main/resources/db/migration")
         val versions = root.listFiles()?.filter { it.isFile && Regex("""V\d+__.+\.sql""").matches(it.name) }
