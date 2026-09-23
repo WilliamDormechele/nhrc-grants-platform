@@ -41,6 +41,13 @@ jobs:
           curl -fsS http://localhost:8080/api/applications
           curl -fsS http://localhost:8080/api/awards
           curl -fsS http://localhost:8080/api/finance/summary
+          curl -fsS http://localhost:8080/api/pregrant/analytics
+          curl -fsS http://localhost:8080/api/pregrant/requirements
+          curl -fsS http://localhost:8080/api/pregrant/quality-checks
+          curl -fsS http://localhost:8080/api/pregrant/expressions-of-interest
+          curl -fsS http://localhost:8080/api/people/researchers
+          curl -fsS http://localhost:8080/api/opportunity-intelligence/matches
+          curl -fsS http://localhost:8080/api/approvals
           curl -fsS http://localhost:8080/api/organisation/roles
       - name: Logs on failure
         if: failure()
