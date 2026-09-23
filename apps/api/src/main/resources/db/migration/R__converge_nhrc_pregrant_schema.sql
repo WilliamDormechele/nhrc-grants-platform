@@ -104,10 +104,12 @@ CREATE TABLE IF NOT EXISTS award_handovers (
 );
 
 ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS thematic_area VARCHAR(180);
+ALTER TABLE approvals ADD COLUMN IF NOT EXISTS requested_by UUID REFERENCES users(id);
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS portal_status VARCHAR(40) NOT NULL DEFAULT 'NOT_STARTED';
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS submission_proof_storage_key TEXT;
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS submission_acknowledgement VARCHAR(255);
 
+CREATE INDEX IF NOT EXISTS idx_approvals_requested_by ON approvals(requested_by,created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_application_requirements_app_status ON application_requirements(application_id,status,due_at);
 CREATE INDEX IF NOT EXISTS idx_funder_communications_app_date ON funder_communications(application_id,communication_at DESC);
 
