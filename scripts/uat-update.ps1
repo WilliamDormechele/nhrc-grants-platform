@@ -85,14 +85,12 @@ if ($v11 -eq "grant intake profiles and review controls|-1618236750" -or $v11 -e
 $v12 = docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -At -F "|" -c "SELECT description,checksum FROM flyway_schema_history WHERE version='012' AND success=TRUE LIMIT 1;"
 Assert-Native "Reading Flyway V012 history"
 $v12 = ($v12 | Out-String).Trim()
-if ($v12 -eq "reconcile nhrc pregrant schema|905675409" -or $v12 -eq "workspace record versions and submission packages|905675409") {
-    docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -v ON_ERROR_STOP=1 -c "DELETE FROM flyway_schema_history WHERE version='012' AND success=TRUE AND checksum=905675409 AND description IN ('reconcile nhrc pregrant schema','workspace record versions and submission packages');"
-    Assert-Native "Removing obsolete UAT V012 history"
-    Write-Host "Obsolete V012 history removed; canonical V012 will run normally." -ForegroundColor Green
-} elseif ([string]::IsNullOrWhiteSpace($v12) -or $v12 -eq "converge nhrc pregrant schema|182670125") {
-    Write-Host "V012 history is ready." -ForegroundColor Green
+if ([string]::IsNullOrWhiteSpace($v12)) {
+    Write-Host "No legacy V012 row is present. Repeatable convergence will run after validation." -ForegroundColor Green
+} elseif ($v12 -eq "workspace record versions and submission packages|905675409" -or $v12 -eq "reconcile nhrc pregrant schema|905675409") {
+    Write-Host "Known legacy V012 history retained. It is intentionally not rewritten; repeatable convergence handles the current schema." -ForegroundColor Green
 } else {
-    throw "Unexpected V012 history '$v12'. No automatic history change was made. Backup is at $hostBackup"
+    Write-Host "Existing V012 history retained as database history: $v12" -ForegroundColor DarkYellow
 }
 
 Write-Host "[5/9] Building API and running all tests..." -ForegroundColor Yellow
@@ -144,7 +142,7 @@ foreach ($name in $checks.Keys) {
     Write-Host "PASS $name" -ForegroundColor Green
 }
 
-$versions = docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -At -c "SELECT version || ':' || success FROM flyway_schema_history ORDER BY installed_rank;"
+$versions = docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -At -c "SELECT coalesce(version,'R') || ':' || description || ':' || success FROM flyway_schema_history ORDER BY installed_rank;"
 Assert-Native "Reading Flyway history"
 
 Write-Host ""
