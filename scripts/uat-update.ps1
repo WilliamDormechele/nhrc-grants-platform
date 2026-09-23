@@ -135,11 +135,25 @@ $checks = [ordered]@{
     PreGrantAnalytics = "http://localhost:8080/api/pregrant/analytics"
     Requirements = "http://localhost:8080/api/pregrant/requirements"
     QualityChecks = "http://localhost:8080/api/pregrant/quality-checks"
+    ExpressionsOfInterest = "http://localhost:8080/api/pregrant/expressions-of-interest"
+    FunderPortals = "http://localhost:8080/api/pregrant/portals"
+    FunderCommunications = "http://localhost:8080/api/pregrant/communications"
+    AwardHandovers = "http://localhost:8080/api/pregrant/handovers"
+    Researchers = "http://localhost:8080/api/people/researchers"
+    OpportunityMatches = "http://localhost:8080/api/opportunity-intelligence/matches"
     Approvals = "http://localhost:8080/api/approvals"
 }
 foreach ($name in $checks.Keys) {
     $null = Invoke-Checked $checks[$name]
     Write-Host "PASS $name" -ForegroundColor Green
+}
+
+try {
+    $webResponse = Invoke-WebRequest -Uri "http://localhost:3000" -UseBasicParsing -TimeoutSec 15
+    if ($webResponse.StatusCode -ne 200) { throw "Unexpected status $($webResponse.StatusCode)" }
+    Write-Host "PASS WebUI" -ForegroundColor Green
+} catch {
+    throw "Web UI smoke test failed. $($_.Exception.Message)"
 }
 
 $versions = docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -At -c "SELECT coalesce(version,'R') || ':' || description || ':' || success FROM flyway_schema_history ORDER BY installed_rank;"
