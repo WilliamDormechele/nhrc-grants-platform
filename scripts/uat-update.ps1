@@ -69,17 +69,30 @@ if ((Get-Item $hostBackup).Length -le 0) { throw "Database backup is empty." }
 Write-Host "Backup: $hostBackup" -ForegroundColor Green
 
 Write-Host "[4/9] Reconciling the known UAT V011 history only if required..." -ForegroundColor Yellow
-$history = docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -At -c "SELECT checksum FROM flyway_schema_history WHERE version='011' AND success=TRUE LIMIT 1;"
+$v11 = docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -At -F "|" -c "SELECT description,checksum FROM flyway_schema_history WHERE version='011' AND success=TRUE LIMIT 1;"
 Assert-Native "Reading Flyway V011 history"
-$history = ($history | Out-String).Trim()
-if ($history -eq "-1618236750") {
-    docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -v ON_ERROR_STOP=1 -c "UPDATE flyway_schema_history SET checksum=1874565598 WHERE version='011' AND checksum=-1618236750 AND success=TRUE;"
-    Assert-Native "Reconciling known V011 checksum"
-    Write-Host "Known legacy V011 checksum reconciled." -ForegroundColor Green
-} elseif ($history -eq "1874565598" -or [string]::IsNullOrWhiteSpace($history)) {
+$v11 = ($v11 | Out-String).Trim()
+if ($v11 -eq "grant intake profiles and review controls|-1618236750" -or $v11 -eq "grant intake profiles and review controls|1874565598") {
+    docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -v ON_ERROR_STOP=1 -c "UPDATE flyway_schema_history SET description='nhrc pregrant operations', script='V011__nhrc_pregrant_operations.sql', checksum=1874565598 WHERE version='011' AND success=TRUE AND description='grant intake profiles and review controls';"
+    Assert-Native "Reconciling known V011 history"
+    Write-Host "Known legacy V011 history reconciled." -ForegroundColor Green
+} elseif ($v11 -eq "nhrc pregrant operations|1874565598" -or [string]::IsNullOrWhiteSpace($v11)) {
     Write-Host "V011 history already compatible or not yet installed." -ForegroundColor Green
 } else {
-    throw "Unexpected V011 checksum '$history'. No automatic history change was made. Backup is at $hostBackup"
+    throw "Unexpected V011 history '$v11'. No automatic history change was made. Backup is at $hostBackup"
+}
+
+$v12 = docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -At -F "|" -c "SELECT description,checksum FROM flyway_schema_history WHERE version='012' AND success=TRUE LIMIT 1;"
+Assert-Native "Reading Flyway V012 history"
+$v12 = ($v12 | Out-String).Trim()
+if ($v12 -eq "reconcile nhrc pregrant schema|905675409") {
+    docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -v ON_ERROR_STOP=1 -c "DELETE FROM flyway_schema_history WHERE version='012' AND success=TRUE AND description='reconcile nhrc pregrant schema' AND checksum=905675409;"
+    Assert-Native "Removing obsolete UAT V012 history"
+    Write-Host "Obsolete V012 history removed; canonical V012 will run normally." -ForegroundColor Green
+} elseif ([string]::IsNullOrWhiteSpace($v12) -or $v12 -eq "converge nhrc pregrant schema|182670125") {
+    Write-Host "V012 history is ready." -ForegroundColor Green
+} else {
+    throw "Unexpected V012 history '$v12'. No automatic history change was made. Backup is at $hostBackup"
 }
 
 Write-Host "[5/9] Building API and running all tests..." -ForegroundColor Yellow
