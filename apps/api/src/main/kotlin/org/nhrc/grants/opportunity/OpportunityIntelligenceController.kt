@@ -25,8 +25,10 @@ class OpportunityIntelligenceController(private val jdbc:JdbcTemplate){
 
  @PostMapping("/matches/{opportunityId}/{researcherProfileId}/confirmation") @Transactional
  fun confirm(@PathVariable opportunityId:UUID,@PathVariable researcherProfileId:UUID,@RequestBody r:MatchConfirmation):Map<String,Any>{
-  val n=jdbc.update("""update opportunity_researcher_matches set human_confirmed=?,confirmed_by=?,confirmed_at=case when ? then now() else null end
-      where opportunity_id=? and researcher_profile_id=?""",r.confirmed,r.confirmedBy,r.confirmed,opportunityId,researcherProfileId)
+  if(r.confirmed && r.confirmedBy==null) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Confirmed by is required")
+  val n=jdbc.update("""update opportunity_researcher_matches
+      set human_confirmed=?,confirmed_by=case when ? then ? else null end,confirmed_at=case when ? then now() else null end
+      where opportunity_id=? and researcher_profile_id=?""",r.confirmed,r.confirmed,r.confirmedBy,r.confirmed,opportunityId,researcherProfileId)
   if(n==0) throw ResponseStatusException(HttpStatus.NOT_FOUND,"Opportunity/researcher match not found")
   return mapOf("opportunityId" to opportunityId,"researcherProfileId" to researcherProfileId,"humanConfirmed" to r.confirmed)
  }
