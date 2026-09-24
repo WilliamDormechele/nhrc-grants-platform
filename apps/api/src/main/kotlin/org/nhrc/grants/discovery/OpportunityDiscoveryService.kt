@@ -206,11 +206,12 @@ class OpportunityDiscoveryService(
 
     private fun findOrCreateFunder(name:String?):UUID?{
         if(name.isNullOrBlank()) return null
-        val existing=jdbc.queryForList("select id from funders where lower(name)=lower(?) limit 1",name).firstOrNull()?.get("id") as UUID?
+        val clean=name.trim().take(255)
+        val existing=jdbc.queryForList("select id from funders where lower(name)=lower(?) limit 1",clean).firstOrNull()?.get("id") as UUID?
         if(existing!=null) return existing
         val id=UUID.randomUUID()
-        jdbc.update("insert into funders(id,name,active) values (?,?,true) on conflict (name) do nothing",id,name.take(255))
-        return jdbc.queryForList("select id from funders where lower(name)=lower(?) limit 1",name.take(255)).firstOrNull()?.get("id") as UUID?
+        jdbc.update("insert into funders(id,name,active) values (?,?,true) on conflict (name) do nothing",id,clean)
+        return jdbc.queryForList("select id from funders where lower(name)=lower(?) limit 1",clean).firstOrNull()?.get("id") as UUID?
     }
 
     private fun saveEvidence(runId:UUID,source:OpportunitySourceConfig,item:ExternalOpportunity,opportunityId:UUID?,validation:String){
