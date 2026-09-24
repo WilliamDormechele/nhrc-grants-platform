@@ -1,0 +1,63 @@
+name: validate
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [main, develop]
+jobs:
+  build-test-smoke:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_DB: nhrc_grants
+      POSTGRES_USER: nhrc_grants
+      POSTGRES_PASSWORD: ci_only_password
+      POSTGRES_PORT: 5436
+      REDIS_PORT: 6379
+      APP_ENV: test
+      AUTH_MODE: development
+      API_PORT: 8080
+      OPPORTUNITY_DISCOVERY_ENABLED: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: API unit tests
+        run: docker run --rm -v "$PWD/apps/api:/workspace" -w /workspace gradle:8.10-jdk21 gradle test --no-daemon
+      - name: Build images
+        run: docker compose build
+      - name: Start stack and run Flyway
+        run: docker compose up -d
+      - name: Wait for services
+        run: |
+          for i in {1..40}; do
+            if curl -fsS http://localhost:8080/actuator/health >/dev/null && curl -fsS http://localhost:3000 >/dev/null; then exit 0; fi
+            sleep 3
+          done
+          docker compose logs
+          exit 1
+      - name: Smoke endpoints
+        run: |
+          curl -fsS http://localhost:8080/api/public/status
+          curl -fsS http://localhost:8080/actuator/health
+          curl -fsS http://localhost:8080/api/dashboard/summary
+          curl -fsS http://localhost:8080/api/opportunities
+          curl -fsS http://localhost:8080/api/applications
+          curl -fsS http://localhost:8080/api/awards
+          curl -fsS http://localhost:8080/api/finance/summary
+          curl -fsS http://localhost:8080/api/pregrant/analytics
+          curl -fsS http://localhost:8080/api/pregrant/requirements
+          curl -fsS http://localhost:8080/api/pregrant/quality-checks
+          curl -fsS http://localhost:8080/api/pregrant/expressions-of-interest
+          curl -fsS http://localhost:8080/api/people/researchers
+          curl -fsS http://localhost:8080/api/people/institutional-profile
+          curl -fsS http://localhost:8080/api/opportunity-intelligence/matches
+          curl -fsS -X POST -H 'Content-Type: application/json' -d '{}' http://localhost:8080/api/opportunity-intelligence/fit/recalculate
+          curl -fsS http://localhost:8080/api/opportunity-intelligence/discovery/sources
+          curl -fsS 'http://localhost:8080/api/opportunity-intelligence/discovery/runs?limit=5'
+          curl -fsS 'http://localhost:8080/api/opportunity-intelligence/discovery/evidence?limit=5'
+          curl -fsS http://localhost:8080/api/approvals
+          curl -fsS http://localhost:8080/api/organisation/roles
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Stop stack
+        if: always()
+        run: docker compose down -v
