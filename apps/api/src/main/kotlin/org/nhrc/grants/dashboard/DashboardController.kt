@@ -31,7 +31,7 @@ class OpportunityController(private val jdbc: JdbcTemplate) {
         val state = status ?: ""
         return jdbc.queryForList("""
             select o.id, o.title, coalesce(f.name,'') funder, o.source_type, o.source_reference, o.url, o.opens_at, o.deadline_at,
-                   o.status, o.eligibility_status, o.institutional_fit_score, o.fit_rationale,
+                   o.status, o.eligibility_status, o.institutional_fit_score, o.fit_rationale,o.automated_fit_score,o.automated_fit_rationale,o.fit_breakdown,o.fit_model_version,o.fit_assessed_at,o.fit_override,
                    o.discovery_review_status, o.discovery_external_id, o.last_seen_external_at,
                    s.code discovery_source_code, s.name discovery_source_name
             from opportunities o left join funders f on f.id=o.funder_id
