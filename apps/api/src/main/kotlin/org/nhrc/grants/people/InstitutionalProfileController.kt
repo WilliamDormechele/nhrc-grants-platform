@@ -29,15 +29,15 @@ class InstitutionalProfileController(
   jdbc.update(
     """update institutional_profiles set
        mission=coalesce(?,mission),
-       strategic_themes=coalesce(?,strategic_themes),
-       capabilities=coalesce(?,capabilities),
-       methods_platforms=coalesce(?,methods_platforms),
-       populations_contexts=coalesce(?,populations_contexts),
-       geography_keywords=coalesce(?,geography_keywords),
+       strategic_themes=coalesce(string_to_array(?, '|'),strategic_themes),
+       capabilities=coalesce(string_to_array(?, '|'),capabilities),
+       methods_platforms=coalesce(string_to_array(?, '|'),methods_platforms),
+       populations_contexts=coalesce(string_to_array(?, '|'),populations_contexts),
+       geography_keywords=coalesce(string_to_array(?, '|'),geography_keywords),
        updated_at=now()
        where id=?""",
-    r.mission,r.strategicThemes?.toTypedArray(),r.capabilities?.toTypedArray(),r.methodsPlatforms?.toTypedArray(),
-    r.populationsContexts?.toTypedArray(),r.geographyKeywords?.toTypedArray(),p.id
+    r.mission,r.strategicThemes?.joinToString("|"),r.capabilities?.joinToString("|"),r.methodsPlatforms?.joinToString("|"),
+    r.populationsContexts?.joinToString("|"),r.geographyKeywords?.joinToString("|"),p.id
   )
   return fitService.activeProfile()
  }
