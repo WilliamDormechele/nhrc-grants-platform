@@ -128,11 +128,13 @@ class OpportunityDiscoveryService(
                 result.fetched,result.normalized.size,created,updated,duplicates,rejected,runId
             )
             jdbc.update("update opportunity_sources set last_success_at=now(),last_failure_message=null,updated_at=now() where id=?",source.id)
+            jdbc.update("update integration_registry set status='HEALTHY',last_success_at=now(),last_failure_message=null where code=?",source.code)
             DiscoveryRunSummary(runId,source.code,"SUCCESS",result.fetched,result.normalized.size,created,updated,duplicates,rejected)
         } catch(e:Exception){
             val msg=(e.message ?: e.javaClass.simpleName).take(1000)
             jdbc.update("update opportunity_discovery_runs set completed_at=now(),status='FAILED',error_message=? where id=?",msg,runId)
             jdbc.update("update opportunity_sources set last_failure_at=now(),last_failure_message=?,updated_at=now() where id=?",msg,source.id)
+            jdbc.update("update integration_registry set status='DEGRADED',last_failure_at=now(),last_failure_message=? where code=?",msg,source.code)
             DiscoveryRunSummary(runId,source.code,"FAILED",0,0,0,0,0,0,msg)
         }
     }
