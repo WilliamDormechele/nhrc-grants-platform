@@ -20,6 +20,7 @@ class OpportunityWriteController(private val jdbc:JdbcTemplate, private val fitS
  fun create(@RequestBody r:OpportunityCreate):Map<String,Any>{
   val id=UUID.randomUUID()
   jdbc.update("""insert into opportunities(id,source_type,source_reference,title,funder_id,url,summary,currency,amount_min,amount_max,opens_at,deadline_at,created_by) values (?,?,?,?,?,?,?,?,?,?,?,?,?)""",id,r.sourceType,r.sourceReference,r.title,r.funderId,r.url,r.summary,r.currency,r.amountMin,r.amountMax,r.opensAt,r.deadlineAt,r.createdBy)
+  runCatching { fitService.assess(id,r.title,r.summary) }
   return mapOf("id" to id,"status" to "DISCOVERED")
  }
 
