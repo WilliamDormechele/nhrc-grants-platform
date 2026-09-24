@@ -11,3 +11,4 @@
 
 .sourceGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.sourceCard{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;border:1px solid var(--line);border-radius:9px;padding:14px;background:#f9fbf9}.sourceCard b{display:block;font-size:12px}.sourceCard span{display:block}.dangerLink{color:var(--red)!important}.preawardShell a.linkbutton{text-decoration:none}.preawardShell .sourceCard .rowActions{justify-content:flex-end}
 @media(max-width:720px){.sourceGrid{grid-template-columns:1fr}.sourceCard{flex-direction:column}.preawardShell .sourceCard .rowActions{justify-content:flex-start}}
+.sourceActions{display:grid;gap:7px;justify-items:end;min-width:210px}.sourceActions .rowActions{justify-content:flex-end}.sourceCard .tiny{overflow-wrap:anywhere;max-width:520px}@media(max-width:720px){.sourceActions{justify-items:start;min-width:0}.sourceActions .rowActions{justify-content:flex-start}}
