@@ -30,6 +30,9 @@ export default function PreAwardWorkspace({name,primary,refresh}:{name:string;pr
   const [matches,setMatches]=useState<Row[]>([]);
   const [eois,setEois]=useState<Row[]>([]);
   const [approvals,setApprovals]=useState<Row[]>([]);
+  const [discoverySources,setDiscoverySources]=useState<Row[]>([]);
+  const [discoveryRuns,setDiscoveryRuns]=useState<Row[]>([]);
+  const [discoveryEvidence,setDiscoveryEvidence]=useState<Row[]>([]);
   const [selectedAppId,setSelectedAppId]=useState<string>("");
   const [workspace,setWorkspace]=useState<any>(null);
   const [action,setAction]=useState<Action>(null);
@@ -37,16 +40,20 @@ export default function PreAwardWorkspace({name,primary,refresh}:{name:string;pr
   const [message,setMessage]=useState("");
 
   async function loadBase(){
-    const [o,a,u,r,m,e,p]=await Promise.all([
+    const [o,a,u,r,m,e,p,ds,dr,de]=await Promise.all([
       request("/api/opportunities"),
       request("/api/applications"),
       request("/api/admin/users"),
       request("/api/people/researchers"),
       request("/api/opportunity-intelligence/matches"),
       request("/api/pregrant/expressions-of-interest"),
-      request("/api/approvals")
+      request("/api/approvals"),
+      request("/api/opportunity-intelligence/discovery/sources"),
+      request("/api/opportunity-intelligence/discovery/runs?limit=12"),
+      request("/api/opportunity-intelligence/discovery/evidence?limit=20")
     ]);
     setOpportunities(o);setApplications(a);setUsers(u);setResearchers(r);setMatches(m);setEois(e);setApprovals(p);
+    setDiscoverySources(ds);setDiscoveryRuns(dr);setDiscoveryEvidence(de);
     if(!selectedAppId&&a.length)setSelectedAppId(a[0].id);
   }
   async function loadWorkspace(id:string){
@@ -64,7 +71,7 @@ export default function PreAwardWorkspace({name,primary,refresh}:{name:string;pr
 
   const selectedApp=applications.find(x=>x.id===selectedAppId)||null;
   const page=(()=>{
-    if(name==="Opportunity Intelligence")return <OpportunityIntelligence rows={opportunities} matches={matches} eois={eois} act={setAction}/>;
+    if(name==="Opportunity Intelligence")return <OpportunityIntelligence rows={opportunities} matches={matches} eois={eois} sources={discoverySources} runs={discoveryRuns} evidence={discoveryEvidence} act={setAction} run={run} busy={busy}/>;
     if(name==="Eligibility & Fit")return <Eligibility rows={opportunities} act={setAction}/>;
     if(name==="Applications")return <Applications rows={applications} act={setAction} select={setSelectedAppId}/>;
     if(name==="Proposal Workspace")return <ApplicationHub mode="proposal" app={selectedApp} applications={applications} workspace={workspace} select={setSelectedAppId} act={setAction} run={run} users={users} researchers={researchers}/>;
@@ -89,12 +96,18 @@ export default function PreAwardWorkspace({name,primary,refresh}:{name:string;pr
   </div>
 }
 
-function OpportunityIntelligence({rows,matches,eois,act}:{rows:Row[];matches:Row[];eois:Row[];act:(a:Action)=>void}){
-  return <><div className="stats"><Stat label="Calls in discovery queue" value={rows.length} note="Institutional funding opportunities"/><Stat label="High institutional fit" value={rows.filter(r=>Number(r.institutional_fit_score)>=85).length} note="85% or higher"/><Stat label="Human-confirmed matches" value={matches.filter(m=>m.human_confirmed).length} note="Researcher routing support"/><Stat label="Expressions of interest" value={eois.length} note="Researcher/team interest recorded"/></div>
-  <Panel title="Opportunity intelligence queue" sub="Screen calls, record eligibility and move suitable opportunities into the application pipeline.">
-    <div className="tableWrap"><table><thead><tr><th>Opportunity</th><th>Funder</th><th>Source</th><th>Fit</th><th>Eligibility</th><th>Deadline</th><th>Actions</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><b>{r.title}</b></td><td>{r.funder||"—"}</td><td>{pretty(r.source_type)}</td><td>{badge((r.institutional_fit_score??"—")+"% fit")}</td><td>{badge(r.eligibility_status)}</td><td>{date(r.deadline_at)}</td><td><div className="rowActions"><button className="linkbutton" onClick={()=>act({kind:"eligibility",row:r})}>Eligibility</button><button className="linkbutton" onClick={()=>act({kind:"fit",row:r})}>Fit</button><button className="linkbutton" onClick={()=>act({kind:"application",row:r})}>Register application</button><button className="linkbutton" onClick={()=>act({kind:"eoi",row:r})}>EOI</button></div></td></tr>)}</tbody></table></div>
+function OpportunityIntelligence({rows,matches,eois,sources,runs,evidence,act,run,busy}:{rows:Row[];matches:Row[];eois:Row[];sources:Row[];runs:Row[];evidence:Row[];act:(a:Action)=>void;run:(path:string,method:string,body?:any)=>Promise<void>;busy:boolean}){
+  const pending=rows.filter(r=>r.discovery_review_status==="PENDING");
+  return <><div className="stats"><Stat label="Discovered calls" value={rows.length} note="Institutional funding opportunity register"/><Stat label="Awaiting human review" value={pending.length} note="External discoveries requiring confirmation"/><Stat label="High institutional fit" value={rows.filter(r=>Number(r.institutional_fit_score)>=85).length} note="Rules-based relevance score"/><Stat label="Active discovery sources" value={sources.filter(s=>s.enabled).length} note="Approved external sources"/></div>
+  <Panel title="Automated discovery" sub="Official external sources are fetched on schedule, normalized, deduplicated and retained with source evidence." action={<button className="btn primary" disabled={busy} onClick={()=>run("/api/opportunity-intelligence/discovery/run","POST",{})}>{busy?"Running…":"Run discovery now"}</button>}>
+    <div className="sourceGrid">{sources.map(s=><div className="sourceCard" key={s.code}><div><b>{s.name}</b><span>{s.code} · {pretty(s.adapter_type)} · {s.trust_level}</span></div><div className="rowActions">{badge(s.enabled?"ACTIVE":"DISABLED")}{s.last_success_at&&<span className="tiny">Last success {date(s.last_success_at)}</span>}</div></div>)}</div>
   </Panel>
-  <div className="grid"><Panel title="Researcher matching" sub="Explainable decision support with human confirmation.">{matches.length?matches.slice(0,8).map(m=><div className="item" key={m.opportunity_id+"-"+m.researcher_profile_id}><div><div className="itemtitle">{m.researcher}</div><div className="itemmeta">{m.opportunity_title}</div></div><div>{badge((m.fit_score??"—")+"% fit")}</div></div>):<Empty text="No researcher matches are recorded yet."/>}</Panel>
+  <Panel title="Opportunity intelligence review queue" sub="External discoveries require human confirmation before NHRC treats them as an accepted opportunity.">
+    <div className="tableWrap"><table><thead><tr><th>Opportunity</th><th>Funder</th><th>Source</th><th>Fit</th><th>Discovery review</th><th>Eligibility</th><th>Deadline</th><th>Actions</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td><b>{r.title}</b><span className="tiny">{r.discovery_external_id||r.source_reference||""}</span></td><td>{r.funder||"—"}</td><td>{r.discovery_source_name||pretty(r.source_type)}</td><td>{badge((r.institutional_fit_score??"—")+"% fit")}</td><td>{badge(r.discovery_review_status)}</td><td>{badge(r.eligibility_status)}</td><td>{date(r.deadline_at)}</td><td><div className="rowActions">{r.discovery_review_status==="PENDING"&&<><button className="linkbutton" onClick={()=>run("/api/opportunity-intelligence/discovery/opportunities/"+r.id+"/review","POST",{decision:"ACCEPTED",note:"Accepted through Opportunity Intelligence review"})}>Accept discovery</button><button className="linkbutton dangerLink" onClick={()=>run("/api/opportunity-intelligence/discovery/opportunities/"+r.id+"/review","POST",{decision:"REJECTED",note:"Rejected through Opportunity Intelligence review"})}>Reject</button></>}<button className="linkbutton" onClick={()=>act({kind:"eligibility",row:r})}>Eligibility</button><button className="linkbutton" onClick={()=>act({kind:"fit",row:r})}>Fit</button><button className="linkbutton" onClick={()=>act({kind:"application",row:r})}>Register application</button><button className="linkbutton" onClick={()=>act({kind:"eoi",row:r})}>EOI</button></div></td></tr>)}</tbody></table></div>
+  </Panel>
+  <div className="grid"><Panel title="Latest discovery runs" sub="Every source run records fetched, created, updated, duplicate and rejected counts.">{runs.length?runs.map(r=><div className="item" key={r.id}><div><div className="itemtitle">{r.source_name||r.source_code}</div><div className="itemmeta">{date(r.started_at)} · fetched {r.fetched_count} · created {r.created_count} · updated {r.updated_count} · rejected {r.rejected_count}</div></div>{badge(r.status)}</div>):<Empty text="No discovery runs recorded yet."/>}</Panel>
+  <Panel title="Source evidence" sub="Latest external evidence retained for provenance and audit.">{evidence.length?evidence.slice(0,10).map(e=><div className="item" key={e.id}><div><div className="itemtitle">{e.title||e.external_id}</div><div className="itemmeta">{e.source_name} · {pretty(e.validation_status)} · fetched {date(e.fetched_at)}</div></div>{e.canonical_url?<a className="linkbutton" href={e.canonical_url} target="_blank" rel="noreferrer">Source</a>:badge(e.source_status)}</div>):<Empty text="No source evidence recorded yet."/>}</Panel></div>
+  <div className="grid"><Panel title="Researcher matching" sub="Explainable rules-based suggestions; human confirmation remains required.">{matches.length?matches.slice(0,8).map(m=><div className="item" key={m.opportunity_id+"-"+m.researcher_profile_id}><div><div className="itemtitle">{m.researcher}</div><div className="itemmeta">{m.opportunity_title} · {m.rationale||"No rationale recorded"}</div></div><div>{badge((m.fit_score??"—")+"% fit")}</div></div>):<Empty text="No researcher matches are recorded yet."/>}</Panel>
   <Panel title="Expression of interest register" sub="Researcher interest is retained before full proposal registration.">{eois.length?eois.slice(0,8).map(e=><div className="item" key={e.id}><div><div className="itemtitle">{e.researcher}</div><div className="itemmeta">{e.opportunity} · {pretty(e.proposed_role)}</div></div>{badge(e.status)}</div>):<Empty text="No expressions of interest recorded."/>}</Panel></div></>
 }
 
