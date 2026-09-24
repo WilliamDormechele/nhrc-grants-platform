@@ -27,8 +27,11 @@ class OpportunityWriteController(private val jdbc:JdbcTemplate){
  fun eligibility(@PathVariable id:UUID,@RequestBody r:OpportunityEligibilityDecision):Map<String,Any>{
   if(r.decision !in setOf("ELIGIBLE","INELIGIBLE","CONDITIONAL")) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid eligibility decision")
   if(r.rationale.isBlank()) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Eligibility rationale is required")
-  val exists=jdbc.queryForObject("select count(*) from opportunities where id=?",Long::class.java,id)?:0
-  if(exists==0L) throw ResponseStatusException(HttpStatus.NOT_FOUND,"Opportunity not found")
+  val rows=jdbc.queryForList("select discovery_source_id,discovery_review_status from opportunities where id=? limit 1",id)
+  if(rows.isEmpty()) throw ResponseStatusException(HttpStatus.NOT_FOUND,"Opportunity not found")
+  val opportunity=rows.first()
+  if(opportunity["discovery_source_id"]!=null && opportunity["discovery_review_status"]!="ACCEPTED")
+   throw ResponseStatusException(HttpStatus.CONFLICT,"Externally discovered opportunity must be accepted by NHRC before eligibility review")
   jdbc.update("insert into eligibility_reviews(opportunity_id,decision,rationale,conditions,reviewed_by) values (?,?,?,?,?)",id,r.decision,r.rationale,r.conditions,r.reviewedBy)
   jdbc.update("update opportunities set eligibility_status=?,updated_at=now() where id=?",r.decision,id)
   return mapOf("id" to id,"eligibilityStatus" to r.decision)
