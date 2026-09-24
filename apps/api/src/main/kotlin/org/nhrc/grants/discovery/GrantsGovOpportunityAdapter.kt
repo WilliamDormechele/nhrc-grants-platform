@@ -12,6 +12,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.LinkedHashMap
+import java.util.concurrent.Executors
 
 @Component
 class GrantsGovOpportunityAdapter(private val mapper: ObjectMapper) : ExternalOpportunityAdapter {
@@ -31,7 +32,7 @@ class GrantsGovOpportunityAdapter(private val mapper: ObjectMapper) : ExternalOp
         for (term in terms) {
             if (unique.size >= source.fetchLimit) break
             val body = mapper.writeValueAsString(mapOf(
-                "rows" to minOf(source.fetchLimit, 50),
+                "rows" to minOf(source.fetchLimit, 10),
                 "keyword" to term,
                 "oppStatuses" to "forecasted|posted",
                 "startRecordNum" to 0
@@ -48,12 +49,20 @@ class GrantsGovOpportunityAdapter(private val mapper: ObjectMapper) : ExternalOp
             }
         }
 
-        val normalized = unique.values.take(source.fetchLimit).map { hit ->
-            val id = hit.path("id").asText()
-            val details = source.detailEndpointUrl?.let { endpoint ->
-                runCatching { postJson(endpoint, mapper.writeValueAsString(mapOf("opportunityId" to id.toLong()))) }.getOrNull()
-            }
-            normalize(hit, details)
+        val hits = unique.values.take(source.fetchLimit)
+        val executor = Executors.newFixedThreadPool(minOf(5, maxOf(1, hits.size)))
+        val normalized = try {
+            hits.map { hit ->
+                executor.submit<ExternalOpportunity> {
+                    val id = hit.path("id").asText()
+                    val details = source.detailEndpointUrl?.let { endpoint ->
+                        runCatching { postJson(endpoint, mapper.writeValueAsString(mapOf("opportunityId" to id.toLong()))) }.getOrNull()
+                    }
+                    normalize(hit, details)
+                }
+            }.map { it.get() }
+        } finally {
+            executor.shutdown()
         }
         return DiscoverySourceResult(fetched, normalized)
     }
