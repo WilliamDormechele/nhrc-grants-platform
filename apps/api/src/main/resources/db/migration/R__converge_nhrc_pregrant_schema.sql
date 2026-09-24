@@ -233,3 +233,5 @@ VALUES
 ('GRANTS_GOV','Grants.gov opportunity discovery','PUBLIC_API','CONFIGURED','INBOUND',now()),
 ('UKRI_FUNDING_FINDER','UKRI Funding Finder RSS','RSS','CONFIGURED','INBOUND',now())
 ON CONFLICT (code) DO UPDATE SET name=excluded.name,integration_type=excluded.integration_type,data_direction=excluded.data_direction;
+
+UPDATE feature_flags SET state='ON',description='Scheduled ingestion from approved official funding sources with normalization, deduplication, provenance and human review' WHERE code='OPPORTUNITY_DISCOVERY';
