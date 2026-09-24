@@ -70,7 +70,7 @@ class GrantsGovOpportunityAdapter(private val mapper: ObjectMapper) : ExternalOp
     private fun normalize(hit: JsonNode, details: JsonNode?): ExternalOpportunity {
         val id = hit.path("id").asText()
         val synopsis = details?.path("data")?.path("synopsis")
-        val summary = synopsis?.path("synopsisDesc")?.asText(null)
+        val summary = cleanText(synopsis?.path("synopsisDesc")?.asText(null))
         val floor = synopsis?.path("awardFloor")?.asText(null)?.toBigDecimalOrNull()
         val ceiling = synopsis?.path("awardCeiling")?.asText(null)?.toBigDecimalOrNull()
         val agency = hit.path("agencyName").asText(null)
@@ -90,6 +90,13 @@ class GrantsGovOpportunityAdapter(private val mapper: ObjectMapper) : ExternalOp
             sourceStatus = hit.path("oppStatus").asText(null),
             rawPayload = mapper.writeValueAsString(mapOf("search" to hit, "detail" to details))
         )
+    }
+
+    private fun cleanText(value:String?):String? {
+        if(value.isNullOrBlank()) return null
+        return value.replace(Regex("<[^>]+>")," ")
+            .replace("&nbsp;"," ").replace("&amp;","&")
+            .replace(Regex("\\s+")," ").trim().takeIf { it.isNotBlank() }
     }
 
     private fun parseSearchDate(value: String?): java.time.OffsetDateTime? {
