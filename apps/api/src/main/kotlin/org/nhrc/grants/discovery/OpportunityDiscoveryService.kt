@@ -134,6 +134,7 @@ class OpportunityDiscoveryService(
             )
             jdbc.update("update opportunity_sources set last_success_at=now(),last_failure_message=null,updated_at=now() where id=?",source.id)
             jdbc.update("update integration_registry set status='HEALTHY',last_success_at=now(),last_failure_message=null where code=?",source.code)
+            if(created>0) notifyGrantsOfficers(runId,source,created)
             DiscoveryRunSummary(runId,source.code,"SUCCESS",result.fetched,result.normalized.size,created,updated,duplicates,rejected)
         } catch(e:Exception){
             val msg=(e.message ?: e.javaClass.simpleName).take(1000)
@@ -266,6 +267,18 @@ class OpportunityDiscoveryService(
         jdbc.update(
             "update opportunities set institutional_fit_score=?,fit_rationale=?,updated_at=now() where id=?",
             BigDecimal.valueOf(best),rationaleParts.joinToString(" "),opportunityId
+        )
+    }
+
+    private fun notifyGrantsOfficers(runId:UUID,source:OpportunitySourceConfig,created:Int){
+        val message=created.toString()+" new opportunity record(s) were discovered from "+source.name+" and require NHRC review."
+        jdbc.update(
+            """insert into notifications(user_id,type,title,message,entity_type,entity_id)
+               select distinct ur.user_id,'OPPORTUNITY_DISCOVERY','New funding opportunities discovered',
+                      ?,'DISCOVERY_RUN',?
+               from user_roles ur join roles r on r.id=ur.role_id join users u on u.id=ur.user_id
+               where r.code='GRANTS_OFFICER' and u.active=true and (ur.valid_until is null or ur.valid_until>=now())""",
+            message,runId
         )
     }
 
