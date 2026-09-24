@@ -26,3 +26,10 @@
 .statusline i,.miniDot{border-radius:50%}
 
 .plainTags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.plainTags span{border:1px solid var(--line);background:#f7faf7;padding:5px 7px;border-radius:0;font-size:11px;color:var(--ink)}
+
+/* Final square-edge override requested for institutional UI. */
+.brandmark,.navtoggle,.navbtn,.groupico,.btn,.landinghero,.landingcard,.stat,.panel,.badge,.stateBadge,.configured,
+.notice,.filters input,.filters select,.form input,.form textarea,.form select,.flowbox,.step,.progress i,.drawer,.close,
+.field select,.summaryTile,.money,.calendarDays>div,.bar,.tableWrap,.sourceCard,.recordCard,.actionDrawer,.plainTags span{
+  border-radius:0!important;
+}
