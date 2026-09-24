@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component
 @Component
 class OpportunityDiscoveryScheduler(
     private val service:OpportunityDiscoveryService,
-    @Value("${nhrc.discovery.enabled:true}") private val enabled:Boolean
+    @Value("\${nhrc.discovery.enabled:true}") private val enabled:Boolean
 ){
- @Scheduled(cron="${nhrc.discovery.cron:0 15 6 * * *}",zone="${nhrc.discovery.zone:UTC}")
+ @Scheduled(cron="\${nhrc.discovery.cron:0 15 6 * * *}",zone="\${nhrc.discovery.zone:UTC}")
  fun scheduledDiscovery(){
    if(enabled) service.runScheduled()
  }
