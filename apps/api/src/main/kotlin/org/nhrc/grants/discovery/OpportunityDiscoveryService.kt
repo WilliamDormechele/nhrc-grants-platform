@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.nhrc.grants.opportunity.InstitutionalFitService
 import java.time.Duration
 import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
@@ -21,7 +22,8 @@ data class SourceUpdateRequest(val enabled:Boolean?=null,val scheduleEnabled:Boo
 class OpportunityDiscoveryService(
     private val jdbc: JdbcTemplate,
     private val adapters: List<ExternalOpportunityAdapter>,
-    private val redis: StringRedisTemplate
+    private val redis: StringRedisTemplate,
+    private val fitService: InstitutionalFitService
 ) {
     fun sources(): List<Map<String,Any?>> = jdbc.queryForList(
         """select id,code,name,adapter_type,endpoint_url,enabled,schedule_enabled,query_terms,fetch_limit,trust_level,
@@ -146,7 +148,7 @@ class OpportunityDiscoveryService(
                     if(persisted.duplicate) duplicates++
                 }
                 saveEvidence(runId,source,item,persisted.opportunityId,validation)
-                applyMatching(persisted.opportunityId,item)
+                fitService.assess(persisted.opportunityId,item.title,item.summary)
             }
             jdbc.update(
                 """update opportunity_discovery_runs set completed_at=now(),status='SUCCESS',fetched_count=?,normalized_count=?,
@@ -247,47 +249,6 @@ class OpportunityDiscoveryService(
                validation_status,open_at,close_at,payload_hash,raw_payload) values (?,?,?,?,?,?,?,?,?,?,?,?)""",
             runId,source.id,opportunityId,item.externalId,item.title,item.canonicalUrl,item.sourceStatus,validation,item.openAt,item.closeAt,
             sha256(item.rawPayload),item.rawPayload.take(250000)
-        )
-    }
-
-    private fun applyMatching(opportunityId:UUID,item:ExternalOpportunity){
-        val text=((item.title + " " + (item.summary ?: "")).lowercase())
-        val themes=jdbc.queryForList("select id,code,name from research_themes where active=true")
-        val matchedThemes=themes.filter { row ->
-            val words=keywords((row["name"] ?: "").toString()) + keywords((row["code"] ?: "").toString())
-            words.any { text.contains(it) }
-        }
-        for(t in matchedThemes){
-            jdbc.update("insert into opportunity_themes(opportunity_id,theme_id) values (?,?) on conflict do nothing",opportunityId,t["id"])
-        }
-
-        val researchers=jdbc.queryForList(
-            """select rp.id researcher_profile_id,u.display_name,coalesce(array_to_string(rp.expertise,', '),'') expertise
-               from researcher_profiles rp join users u on u.id=rp.user_id where rp.active=true"""
-        )
-        var best=if(matchedThemes.isNotEmpty()) 45.0 + minOf(30.0,matchedThemes.size*10.0) else 25.0
-        val rationaleParts=mutableListOf<String>()
-        if(matchedThemes.isNotEmpty()) rationaleParts += "Themes: " + matchedThemes.joinToString(", ") { (it["name"] ?: "").toString() }
-        for(r in researchers){
-            val expertise=(r["expertise"] ?: "").toString()
-            val matched=keywords(expertise).filter { text.contains(it) }.distinct()
-            if(matched.isEmpty()) continue
-            val score=minOf(95.0,45.0 + matched.size*10.0 + matchedThemes.size*5.0)
-            best=maxOf(best,score)
-            val rationale="Matched expertise: " + matched.joinToString(", ")
-            jdbc.update(
-                """insert into opportunity_researcher_matches(opportunity_id,researcher_profile_id,fit_score,rationale,human_confirmed)
-                   values (?,?,?,?,false)
-                   on conflict (opportunity_id,researcher_profile_id) do update
-                   set fit_score=excluded.fit_score,rationale=excluded.rationale
-                   where opportunity_researcher_matches.human_confirmed=false""",
-                opportunityId,r["researcher_profile_id"],BigDecimal.valueOf(score),rationale
-            )
-        }
-        if(rationaleParts.isEmpty()) rationaleParts += "Rules-based match used title and source summary; human confirmation required."
-        jdbc.update(
-            "update opportunities set institutional_fit_score=?,fit_rationale=?,updated_at=now() where id=?",
-            BigDecimal.valueOf(best),rationaleParts.joinToString(" "),opportunityId
         )
     }
 
