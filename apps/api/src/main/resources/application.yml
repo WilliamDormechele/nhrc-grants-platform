@@ -37,3 +37,7 @@ nhrc:
   environment: ${APP_ENV:development}
   auth:
     mode: ${AUTH_MODE:development}
+  discovery:
+    enabled: ${OPPORTUNITY_DISCOVERY_ENABLED:true}
+    cron: "${OPPORTUNITY_DISCOVERY_CRON:0 15 6 * * *}"
+    zone: ${OPPORTUNITY_DISCOVERY_ZONE:UTC}
