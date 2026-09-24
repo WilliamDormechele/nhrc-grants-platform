@@ -71,6 +71,7 @@ export const endpoints:Record<string,string>={
 "Researcher Profiles":"/api/people/researchers",
 "Partner Directory":"/api/people/partners",
 "Funder Directory":"/api/people/funders",
+"NHRC Institutional Profile":"/api/people/institutional-profile",
 "Calendar":"/api/calendar",
 "Users & Roles":"/api/admin/users",
 "Organisation Structure":"/api/organisation/units",
