@@ -1,5 +1,6 @@
 param(
-    [switch]$SkipWebBuild
+    [switch]$SkipWebBuild,
+    [switch]$RunDiscovery
 )
 
 $ErrorActionPreference = "Stop"
@@ -157,6 +158,28 @@ try {
     Write-Host "PASS WebUI" -ForegroundColor Green
 } catch {
     throw "Web UI smoke test failed. $($_.Exception.Message)"
+}
+
+if ($RunDiscovery) {
+    Write-Host ""
+    Write-Host "Running live external opportunity discovery..." -ForegroundColor Yellow
+    try {
+        $result = Invoke-RestMethod -Uri "http://localhost:8080/api/opportunity-intelligence/discovery/run" -Method Post -ContentType "application/json" -Body "{}" -TimeoutSec 180
+        $result | ForEach-Object {
+            $line = "$($_.sourceCode): $($_.status) | fetched=$($_.fetched) normalized=$($_.normalized) created=$($_.created) updated=$($_.updated) rejected=$($_.rejected)"
+            if ($_.status -eq "SUCCESS") {
+                Write-Host "PASS $line" -ForegroundColor Green
+            } else {
+                Write-Host "WARN $line $($_.error)" -ForegroundColor DarkYellow
+            }
+        }
+        $null = Invoke-Checked "http://localhost:8080/api/opportunities"
+        $null = Invoke-Checked "http://localhost:8080/api/opportunity-intelligence/discovery/evidence?limit=5"
+        Write-Host "PASS LiveDiscoveryPipeline" -ForegroundColor Green
+    } catch {
+        Write-Host "WARN Live discovery could not complete: $($_.Exception.Message)" -ForegroundColor DarkYellow
+        Write-Host "The platform remains installed; source failures are retained in the discovery run and integration health registers." -ForegroundColor DarkYellow
+    }
 }
 
 $versions = docker exec nhrc-grants-postgres psql -U nhrc_grants -d nhrc_grants -At -c "SELECT coalesce(version,'R') || ':' || description || ':' || success FROM flyway_schema_history ORDER BY installed_rank;"
