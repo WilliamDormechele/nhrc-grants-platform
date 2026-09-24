@@ -16,6 +16,7 @@ jobs:
       APP_ENV: test
       AUTH_MODE: development
       API_PORT: 8080
+      OPPORTUNITY_DISCOVERY_ENABLED: false
     steps:
       - uses: actions/checkout@v4
       - name: API unit tests
