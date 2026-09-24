@@ -47,7 +47,9 @@ jobs:
           curl -fsS http://localhost:8080/api/pregrant/quality-checks
           curl -fsS http://localhost:8080/api/pregrant/expressions-of-interest
           curl -fsS http://localhost:8080/api/people/researchers
+          curl -fsS http://localhost:8080/api/people/institutional-profile
           curl -fsS http://localhost:8080/api/opportunity-intelligence/matches
+          curl -fsS -X POST -H 'Content-Type: application/json' -d '{}' http://localhost:8080/api/opportunity-intelligence/fit/recalculate
           curl -fsS http://localhost:8080/api/opportunity-intelligence/discovery/sources
           curl -fsS 'http://localhost:8080/api/opportunity-intelligence/discovery/runs?limit=5'
           curl -fsS 'http://localhost:8080/api/opportunity-intelligence/discovery/evidence?limit=5'
