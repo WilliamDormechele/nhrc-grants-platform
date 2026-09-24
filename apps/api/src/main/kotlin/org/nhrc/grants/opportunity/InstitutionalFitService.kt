@@ -66,6 +66,15 @@ class InstitutionalFitService(
         }.firstOrNull() ?: throw IllegalStateException("No active institutional fit profile is configured")
 
     @Transactional
+    fun recalculateAll():Map<String,Any>{
+        val ids=jdbc.queryForList("select id from opportunities where status not in ('CLOSED','DISMISSED') order by created_at",UUID::class.java)
+        var assessed=0
+        var failed=0
+        ids.forEach { id -> runCatching { recalculate(id) }.onSuccess { assessed++ }.onFailure { failed++ } }
+        return mapOf("assessed" to assessed,"failed" to failed,"modelVersion" to modelVersion)
+    }
+
+    @Transactional
     fun recalculate(opportunityId:UUID):FitAssessmentResult{
         val row=jdbc.queryForMap("select title,summary from opportunities where id=?",opportunityId)
         return assess(opportunityId,(row["title"]?:"").toString(),row["summary"]?.toString())
