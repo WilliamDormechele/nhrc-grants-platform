@@ -95,9 +95,13 @@ class OpportunityDiscoveryService(
         if(r.decision !in setOf("ACCEPTED","REJECTED")) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Decision must be ACCEPTED or REJECTED")
         val changed=jdbc.update(
             """update opportunities set discovery_review_status=?,discovery_reviewed_by=?,discovery_reviewed_at=now(),
-               discovery_review_note=?,status=case when ?='REJECTED' then 'DISMISSED' else status end,updated_at=now()
+               discovery_review_note=?,
+               status=case when ?='REJECTED' then 'DISMISSED'
+                           when ?='ACCEPTED' and opens_at is not null and opens_at>now() then 'UPCOMING'
+                           when ?='ACCEPTED' then 'OPEN' else status end,
+               updated_at=now()
                where id=? and discovery_source_id is not null""",
-            r.decision,r.reviewerId,r.note,r.decision,id
+            r.decision,r.reviewerId,r.note,r.decision,r.decision,r.decision,id
         )
         if(changed==0) throw ResponseStatusException(HttpStatus.NOT_FOUND,"Discovered opportunity not found")
         return jdbc.queryForMap("""select id,title,status,discovery_review_status,discovery_reviewed_at from opportunities where id=?""",id)
