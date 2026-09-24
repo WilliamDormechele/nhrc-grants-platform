@@ -4,6 +4,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.data.redis.core.StringRedisTemplate
+import java.time.Duration
 import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.nio.charset.StandardCharsets
@@ -18,7 +20,8 @@ data class SourceUpdateRequest(val enabled:Boolean?=null,val scheduleEnabled:Boo
 @Service
 class OpportunityDiscoveryService(
     private val jdbc: JdbcTemplate,
-    private val adapters: List<ExternalOpportunityAdapter>
+    private val adapters: List<ExternalOpportunityAdapter>,
+    private val redis: StringRedisTemplate
 ) {
     fun sources(): List<Map<String,Any?>> = jdbc.queryForList(
         """select id,code,name,adapter_type,endpoint_url,enabled,schedule_enabled,query_terms,fetch_limit,trust_level,
@@ -62,12 +65,14 @@ class OpportunityDiscoveryService(
     }
 
     fun runScheduled(): List<DiscoveryRunSummary> {
-        val locked = jdbc.queryForObject("select pg_try_advisory_lock(70324017)",Boolean::class.java) ?: false
+        val lockKey="nhrc:grants:opportunity-discovery:schedule"
+        val token=UUID.randomUUID().toString()
+        val locked=redis.opsForValue().setIfAbsent(lockKey,token,Duration.ofMinutes(30)) == true
         if(!locked) return emptyList()
         return try {
             loadSources(enabledOnly=true).filter { it.scheduleEnabled }.map { runSource(it,"SCHEDULED") }
         } finally {
-            jdbc.queryForObject("select pg_advisory_unlock(70324017)",Boolean::class.java)
+            if(redis.opsForValue().get(lockKey)==token) redis.delete(lockKey)
         }
     }
 
