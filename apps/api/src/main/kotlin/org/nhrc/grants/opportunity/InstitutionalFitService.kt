@@ -161,7 +161,7 @@ class InstitutionalFitService(
             """insert into opportunity_fit_assessments(
                    opportunity_id,institutional_profile_id,theme_score,capability_score,researcher_score,context_score,total_score,
                    matched_themes,matched_capabilities,matched_contexts,best_researcher_profile_id,researcher_rationale,model_version,assessed_at)
-               values (?,?,?,?,?,?,?,?,?,?,?,?,?,now())
+               values (?,?,?,?,?,?,?,string_to_array(?, '|'),string_to_array(?, '|'),string_to_array(?, '|'),?,?,?,now())
                on conflict (opportunity_id) do update set
                    institutional_profile_id=excluded.institutional_profile_id,theme_score=excluded.theme_score,
                    capability_score=excluded.capability_score,researcher_score=excluded.researcher_score,
@@ -170,7 +170,7 @@ class InstitutionalFitService(
                    matched_contexts=excluded.matched_contexts,best_researcher_profile_id=excluded.best_researcher_profile_id,
                    researcher_rationale=excluded.researcher_rationale,model_version=excluded.model_version,assessed_at=now()""",
             opportunityId,profile.id,themeScore,capabilityScore,researcherScore,contextScore,total,
-            matchedThemes.toTypedArray(),matchedCapabilities.toTypedArray(),matchedContexts.toTypedArray(),
+            matchedThemes.joinToString("|"),matchedCapabilities.joinToString("|"),matchedContexts.joinToString("|"),
             bestResearcher?.id,
             if(bestResearcherTerms.isEmpty()) null else "Matched expertise: "+bestResearcherTerms.joinToString(", "),
             modelVersion
