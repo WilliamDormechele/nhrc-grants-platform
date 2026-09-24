@@ -238,3 +238,85 @@ VALUES
 ON CONFLICT (code) DO UPDATE SET name=excluded.name,integration_type=excluded.integration_type,data_direction=excluded.data_direction;
 
 UPDATE feature_flags SET state='ON',description='Scheduled ingestion from approved official funding sources with normalization, deduplication, provenance and human review' WHERE code='OPPORTUNITY_DISCOVERY';
+
+
+-- Institutional fit profile and transparent fit scoring.
+CREATE TABLE IF NOT EXISTS institutional_profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(80) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    country_code VARCHAR(3),
+    organisation_type VARCHAR(120),
+    mission TEXT,
+    strategic_themes TEXT[] NOT NULL DEFAULT '{}',
+    capabilities TEXT[] NOT NULL DEFAULT '{}',
+    methods_platforms TEXT[] NOT NULL DEFAULT '{}',
+    populations_contexts TEXT[] NOT NULL DEFAULT '{}',
+    geography_keywords TEXT[] NOT NULL DEFAULT '{}',
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    updated_by UUID REFERENCES users(id),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO institutional_profiles(
+    code,name,country_code,organisation_type,mission,
+    strategic_themes,capabilities,methods_platforms,populations_contexts,geography_keywords
+) VALUES (
+    'NHRC',
+    'Navrongo Health Research Centre',
+    'GHA',
+    'Ghana Health Service research centre',
+    'Conduct research into major national and international health problems to inform policy and improve health.',
+    ARRAY[
+      'health and demographic surveillance','clinical sciences','public health',
+      'data science','digital health','laboratory biomedical sciences',
+      'implementation science','maternal health','child health',
+      'infectious diseases','non communicable diseases','health systems'
+    ]::TEXT[],
+    ARRAY[
+      'clinical trials','community trials','epidemiology','surveillance',
+      'health and demographic surveillance system','data management','data analysis',
+      'biostatistics','digital data collection','laboratory diagnostics',
+      'molecular testing','microbiology','implementation research',
+      'social science research','policy translation'
+    ]::TEXT[],
+    ARRAY[
+      'hdss','cohort studies','clinical trials','community based research',
+      'longitudinal surveillance','routine health data','mixed methods',
+      'qualitative research','quantitative research','laboratory research',
+      'digital health','data science'
+    ]::TEXT[],
+    ARRAY[
+      'ghana','sub saharan africa','west africa','rural populations',
+      'deprived communities','population health','primary health care',
+      'health systems','maternal and child health'
+    ]::TEXT[],
+    ARRAY['ghana','west africa','sub saharan africa','africa','low and middle income countries','lmics']::TEXT[]
+)
+ON CONFLICT (code) DO NOTHING;
+
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS automated_fit_score NUMERIC(5,2);
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS automated_fit_rationale TEXT;
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS fit_breakdown JSONB;
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS fit_model_version VARCHAR(40);
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS fit_assessed_at TIMESTAMPTZ;
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS fit_override BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS fit_override_by UUID REFERENCES users(id);
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS fit_override_at TIMESTAMPTZ;
+
+CREATE TABLE IF NOT EXISTS opportunity_fit_assessments (
+    opportunity_id UUID PRIMARY KEY REFERENCES opportunities(id) ON DELETE CASCADE,
+    institutional_profile_id UUID REFERENCES institutional_profiles(id),
+    theme_score NUMERIC(5,2) NOT NULL DEFAULT 0,
+    capability_score NUMERIC(5,2) NOT NULL DEFAULT 0,
+    researcher_score NUMERIC(5,2) NOT NULL DEFAULT 0,
+    context_score NUMERIC(5,2) NOT NULL DEFAULT 0,
+    total_score NUMERIC(5,2) NOT NULL DEFAULT 0,
+    matched_themes TEXT[] NOT NULL DEFAULT '{}',
+    matched_capabilities TEXT[] NOT NULL DEFAULT '{}',
+    matched_contexts TEXT[] NOT NULL DEFAULT '{}',
+    best_researcher_profile_id UUID REFERENCES researcher_profiles(id),
+    researcher_rationale TEXT,
+    model_version VARCHAR(40) NOT NULL,
+    assessed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
