@@ -217,7 +217,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_opportunity_source_external ON opportunitie
 INSERT INTO opportunity_sources(code,name,adapter_type,endpoint_url,detail_endpoint_url,enabled,schedule_enabled,query_terms,fetch_limit,trust_level)
 VALUES
 ('GRANTS_GOV','Grants.gov','GRANTS_GOV','https://api.grants.gov/v1/api/search2','https://api.grants.gov/v1/api/fetchOpportunity',true,true,
- 'health|public health|global health|population health|health systems|epidemiology|data science|digital health|maternal health|child health|infectious disease|climate health',50,'OFFICIAL'),
+ 'health|public health|global health|population health|health systems|epidemiology|data science|digital health|maternal health|child health|infectious disease|climate health',25,'OFFICIAL'),
 ('UKRI_FUNDING_FINDER','UKRI Funding Finder','RSS','https://www.ukri.org/opportunity/feed/',NULL,true,true,
  'health|medical|public health|population|data|digital|implementation|epidemiology|global health|climate',100,'OFFICIAL')
 ON CONFLICT (code) DO UPDATE SET
