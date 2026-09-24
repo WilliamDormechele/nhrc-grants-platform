@@ -108,6 +108,18 @@ class OpportunityDiscoveryService(
     }
 
     private fun runSource(source:OpportunitySourceConfig,trigger:String): DiscoveryRunSummary {
+        val lockKey="nhrc:grants:opportunity-discovery:source:"+source.code
+        val token=UUID.randomUUID().toString()
+        val locked=redis.opsForValue().setIfAbsent(lockKey,token,Duration.ofMinutes(20)) == true
+        if(!locked) return DiscoveryRunSummary(UUID.randomUUID(),source.code,"SKIPPED_BUSY",0,0,0,0,0,0,"A discovery run is already active for this source")
+        return try {
+            runSourceUnlocked(source,trigger)
+        } finally {
+            if(redis.opsForValue().get(lockKey)==token) redis.delete(lockKey)
+        }
+    }
+
+    private fun runSourceUnlocked(source:OpportunitySourceConfig,trigger:String): DiscoveryRunSummary {
         val adapter=adapters.firstOrNull { it.supports(source) }
             ?: return failedRun(source,trigger,"No adapter configured for " + source.adapterType)
         val runId=UUID.randomUUID()
