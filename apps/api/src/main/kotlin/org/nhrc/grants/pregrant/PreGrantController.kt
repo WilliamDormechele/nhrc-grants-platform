@@ -58,6 +58,9 @@ class PreGrantController(private val jdbc:JdbcTemplate){
 
  @PostMapping("/expressions-of-interest") @Transactional
  fun createEoi(@RequestBody r:EoiCreate):Map<String,Any>{
+  val opportunity=jdbc.queryForMap("select discovery_source_id,discovery_review_status from opportunities where id=?",r.opportunityId)
+  if(opportunity["discovery_source_id"]!=null && opportunity["discovery_review_status"]!="ACCEPTED")
+   throw ResponseStatusException(HttpStatus.CONFLICT,"Externally discovered opportunity must be accepted by NHRC before expressions of interest are recorded")
   val id=UUID.randomUUID()
   jdbc.update("insert into pregrant_expressions_of_interest(id,opportunity_id,researcher_id,proposed_role,team_summary,note) values (?,?,?,?,?,?)",id,r.opportunityId,r.researcherId,r.proposedRole,r.teamSummary,r.note)
   return mapOf("id" to id,"status" to "SUBMITTED")
