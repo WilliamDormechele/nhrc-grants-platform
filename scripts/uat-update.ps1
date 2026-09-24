@@ -141,6 +141,9 @@ $checks = [ordered]@{
     AwardHandovers = "http://localhost:8080/api/pregrant/handovers"
     Researchers = "http://localhost:8080/api/people/researchers"
     OpportunityMatches = "http://localhost:8080/api/opportunity-intelligence/matches"
+    DiscoverySources = "http://localhost:8080/api/opportunity-intelligence/discovery/sources"
+    DiscoveryRuns = "http://localhost:8080/api/opportunity-intelligence/discovery/runs?limit=5"
+    DiscoveryEvidence = "http://localhost:8080/api/opportunity-intelligence/discovery/evidence?limit=5"
     Approvals = "http://localhost:8080/api/approvals"
 }
 foreach ($name in $checks.Keys) {
