@@ -41,6 +41,7 @@ class OpportunityWriteController(private val jdbc:JdbcTemplate, private val fitS
  @PatchMapping("/{id}/fit") @Transactional
  fun fit(@PathVariable id:UUID,@RequestBody r:OpportunityFitUpdate):Map<String,Any>{
   if(r.score < BigDecimal.ZERO || r.score > BigDecimal("100")) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Fit score must be between 0 and 100")
+  if(r.reviewedBy==null) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Reviewer identity is required for a human fit override")
   val n=jdbc.update("""update opportunities set institutional_fit_score=?,fit_rationale=?,fit_override=true,fit_override_by=?,fit_override_at=now(),updated_at=now() where id=?""",r.score,r.rationale,r.reviewedBy,id)
   if(n==0) throw ResponseStatusException(HttpStatus.NOT_FOUND,"Opportunity not found")
   return mapOf("id" to id,"institutionalFitScore" to r.score,"fitOverride" to true)
