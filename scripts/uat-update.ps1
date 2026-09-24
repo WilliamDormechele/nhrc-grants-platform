@@ -142,6 +142,7 @@ $checks = [ordered]@{
     AwardHandovers = "http://localhost:8080/api/pregrant/handovers"
     Researchers = "http://localhost:8080/api/people/researchers"
     OpportunityMatches = "http://localhost:8080/api/opportunity-intelligence/matches"
+    InstitutionalProfile = "http://localhost:8080/api/people/institutional-profile"
     DiscoverySources = "http://localhost:8080/api/opportunity-intelligence/discovery/sources"
     DiscoveryRuns = "http://localhost:8080/api/opportunity-intelligence/discovery/runs?limit=5"
     DiscoveryEvidence = "http://localhost:8080/api/opportunity-intelligence/discovery/evidence?limit=5"
@@ -150,6 +151,13 @@ $checks = [ordered]@{
 foreach ($name in $checks.Keys) {
     $null = Invoke-Checked $checks[$name]
     Write-Host "PASS $name" -ForegroundColor Green
+}
+
+try {
+    $fitResult = Invoke-RestMethod -Uri "http://localhost:8080/api/opportunity-intelligence/fit/recalculate" -Method Post -ContentType "application/json" -Body "{}" -TimeoutSec 60
+    Write-Host "PASS InstitutionalFitRecalculation assessed=$($fitResult.assessed) failed=$($fitResult.failed) model=$($fitResult.modelVersion)" -ForegroundColor Green
+} catch {
+    throw "Institutional fit recalculation failed. $($_.Exception.Message)"
 }
 
 try {
