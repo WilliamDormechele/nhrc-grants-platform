@@ -37,6 +37,7 @@ class GrantsGovOpportunityAdapter(private val mapper: ObjectMapper) : ExternalOp
                 "startRecordNum" to 0
             ))
             val root = postJson(source.endpointUrl, body)
+            if (root.path("errorcode").asInt(0) != 0) throw IllegalStateException("Grants.gov search error: " + root.path("msg").asText("unknown error"))
             val hits = root.path("data").path("oppHits")
             if (!hits.isArray) continue
             fetched += hits.size()
