@@ -33,3 +33,6 @@
 .field select,.summaryTile,.money,.calendarDays>div,.bar,.tableWrap,.sourceCard,.recordCard,.actionDrawer,.plainTags span{
   border-radius:0!important;
 }
+
+/* Keep only semantic indicator dots circular; user avatar follows square-edge system. */
+.avatar{border-radius:0!important}
