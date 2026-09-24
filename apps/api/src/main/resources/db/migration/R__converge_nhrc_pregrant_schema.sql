@@ -137,3 +137,99 @@ CROSS JOIN (VALUES
  ('SUBMISSION_READY','Authorised final version ready for submission')
 ) AS x(check_type,title)
 WHERE NOT EXISTS (SELECT 1 FROM application_quality_checks q WHERE q.application_id=a.id AND q.check_type=x.check_type);
+
+
+-- External opportunity discovery engine.
+CREATE TABLE IF NOT EXISTS opportunity_sources (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code VARCHAR(80) NOT NULL UNIQUE,
+    name VARCHAR(180) NOT NULL,
+    adapter_type VARCHAR(40) NOT NULL,
+    endpoint_url TEXT NOT NULL,
+    detail_endpoint_url TEXT,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    schedule_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    query_terms TEXT,
+    fetch_limit INTEGER NOT NULL DEFAULT 50 CHECK (fetch_limit BETWEEN 1 AND 500),
+    trust_level VARCHAR(30) NOT NULL DEFAULT 'OFFICIAL',
+    last_run_at TIMESTAMPTZ,
+    last_success_at TIMESTAMPTZ,
+    last_failure_at TIMESTAMPTZ,
+    last_failure_message TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS opportunity_discovery_runs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    source_id UUID REFERENCES opportunity_sources(id) ON DELETE SET NULL,
+    trigger_type VARCHAR(30) NOT NULL,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ,
+    status VARCHAR(30) NOT NULL DEFAULT 'RUNNING',
+    fetched_count INTEGER NOT NULL DEFAULT 0,
+    normalized_count INTEGER NOT NULL DEFAULT 0,
+    created_count INTEGER NOT NULL DEFAULT 0,
+    updated_count INTEGER NOT NULL DEFAULT 0,
+    duplicate_count INTEGER NOT NULL DEFAULT 0,
+    rejected_count INTEGER NOT NULL DEFAULT 0,
+    error_message TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_opportunity_discovery_runs_started ON opportunity_discovery_runs(started_at DESC);
+
+CREATE TABLE IF NOT EXISTS opportunity_source_evidence (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    run_id UUID REFERENCES opportunity_discovery_runs(id) ON DELETE SET NULL,
+    source_id UUID NOT NULL REFERENCES opportunity_sources(id) ON DELETE CASCADE,
+    opportunity_id UUID REFERENCES opportunities(id) ON DELETE SET NULL,
+    external_id VARCHAR(255),
+    title TEXT,
+    canonical_url TEXT,
+    source_status VARCHAR(80),
+    validation_status VARCHAR(80) NOT NULL,
+    open_at TIMESTAMPTZ,
+    close_at TIMESTAMPTZ,
+    payload_hash VARCHAR(64),
+    raw_payload TEXT,
+    fetched_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_opportunity_source_evidence_external ON opportunity_source_evidence(source_id,external_id,fetched_at DESC);
+CREATE INDEX IF NOT EXISTS idx_opportunity_source_evidence_opportunity ON opportunity_source_evidence(opportunity_id,fetched_at DESC);
+
+CREATE TABLE IF NOT EXISTS opportunity_discovery_keys (
+    fingerprint VARCHAR(64) PRIMARY KEY,
+    opportunity_id UUID NOT NULL REFERENCES opportunities(id) ON DELETE CASCADE,
+    first_seen_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS discovery_review_status VARCHAR(40) NOT NULL DEFAULT 'NOT_APPLICABLE';
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS discovery_source_id UUID REFERENCES opportunity_sources(id);
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS discovery_external_id VARCHAR(255);
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS discovery_fingerprint VARCHAR(64);
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS last_seen_external_at TIMESTAMPTZ;
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS discovery_reviewed_by UUID REFERENCES users(id);
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS discovery_reviewed_at TIMESTAMPTZ;
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS discovery_review_note TEXT;
+CREATE INDEX IF NOT EXISTS idx_opportunities_discovery_review ON opportunities(discovery_review_status,deadline_at);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_opportunity_source_external ON opportunities(discovery_source_id,discovery_external_id) WHERE discovery_source_id IS NOT NULL AND discovery_external_id IS NOT NULL;
+
+INSERT INTO opportunity_sources(code,name,adapter_type,endpoint_url,detail_endpoint_url,enabled,schedule_enabled,query_terms,fetch_limit,trust_level)
+VALUES
+('GRANTS_GOV','Grants.gov','GRANTS_GOV','https://api.grants.gov/v1/api/search2','https://api.grants.gov/v1/api/fetchOpportunity',true,true,
+ 'health|public health|global health|population health|health systems|epidemiology|data science|digital health|maternal health|child health|infectious disease|climate health',50,'OFFICIAL'),
+('UKRI_FUNDING_FINDER','UKRI Funding Finder','RSS','https://www.ukri.org/opportunity/feed/',NULL,true,true,
+ 'health|medical|public health|population|data|digital|implementation|epidemiology|global health|climate',100,'OFFICIAL')
+ON CONFLICT (code) DO UPDATE SET
+ name=excluded.name,
+ adapter_type=excluded.adapter_type,
+ endpoint_url=excluded.endpoint_url,
+ detail_endpoint_url=excluded.detail_endpoint_url,
+ trust_level=excluded.trust_level,
+ updated_at=now();
+
+INSERT INTO integration_registry(code,name,integration_type,status,data_direction,created_at)
+VALUES
+('GRANTS_GOV','Grants.gov opportunity discovery','PUBLIC_API','CONFIGURED','INBOUND',now()),
+('UKRI_FUNDING_FINDER','UKRI Funding Finder RSS','RSS','CONFIGURED','INBOUND',now())
+ON CONFLICT (code) DO UPDATE SET name=excluded.name,integration_type=excluded.integration_type,data_direction=excluded.data_direction;
