@@ -97,6 +97,7 @@ class OpportunityDiscoveryService(
     @Transactional
     fun reviewOpportunity(id:UUID,r:DiscoveryReviewRequest): Map<String,Any?> {
         if(r.decision !in setOf("ACCEPTED","REJECTED")) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Decision must be ACCEPTED or REJECTED")
+        if(r.reviewerId==null) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Reviewer identity is required for discovery decisions")
         val changed=jdbc.update(
             """update opportunities set discovery_review_status=?,discovery_reviewed_by=?,discovery_reviewed_at=now(),
                discovery_review_note=?,
