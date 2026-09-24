@@ -219,7 +219,9 @@ VALUES
 ('GRANTS_GOV','Grants.gov','GRANTS_GOV','https://api.grants.gov/v1/api/search2','https://api.grants.gov/v1/api/fetchOpportunity',true,true,
  'health|public health|global health|population health|health systems|epidemiology|data science|digital health|maternal health|child health|infectious disease|climate health',25,'OFFICIAL'),
 ('UKRI_FUNDING_FINDER','UKRI Funding Finder','RSS','https://www.ukri.org/opportunity/feed/',NULL,true,true,
- 'health|medical|public health|population|data|digital|implementation|epidemiology|global health|climate',100,'OFFICIAL')
+ 'health|medical|public health|population|data|digital|implementation|epidemiology|global health|climate',100,'OFFICIAL'),
+('EU_FUNDING_TENDERS','EU Funding & Tenders Portal','EU_FUNDING_TENDERS','https://api.tech.ec.europa.eu/search-api/prod/rest/search',NULL,true,true,
+ 'health|global health|public health|population|digital health|data science|epidemiology|implementation|maternal|climate health',25,'OFFICIAL')
 ON CONFLICT (code) DO UPDATE SET
  name=excluded.name,
  adapter_type=excluded.adapter_type,
@@ -231,7 +233,8 @@ ON CONFLICT (code) DO UPDATE SET
 INSERT INTO integration_registry(code,name,integration_type,status,data_direction,created_at)
 VALUES
 ('GRANTS_GOV','Grants.gov opportunity discovery','PUBLIC_API','CONFIGURED','INBOUND',now()),
-('UKRI_FUNDING_FINDER','UKRI Funding Finder RSS','RSS','CONFIGURED','INBOUND',now())
+('UKRI_FUNDING_FINDER','UKRI Funding Finder RSS','RSS','CONFIGURED','INBOUND',now()),
+('EU_FUNDING_TENDERS','EU Funding & Tenders Portal discovery','PUBLIC_API','CONFIGURED','INBOUND',now())
 ON CONFLICT (code) DO UPDATE SET name=excluded.name,integration_type=excluded.integration_type,data_direction=excluded.data_direction;
 
 UPDATE feature_flags SET state='ON',description='Scheduled ingestion from approved official funding sources with normalization, deduplication, provenance and human review' WHERE code='OPPORTUNITY_DISCOVERY';
