@@ -12,3 +12,15 @@
 .sourceGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.sourceCard{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;border:1px solid var(--line);border-radius:9px;padding:14px;background:#f9fbf9}.sourceCard b{display:block;font-size:12px}.sourceCard span{display:block}.dangerLink{color:var(--red)!important}.preawardShell a.linkbutton{text-decoration:none}.preawardShell .sourceCard .rowActions{justify-content:flex-end}
 @media(max-width:720px){.sourceGrid{grid-template-columns:1fr}.sourceCard{flex-direction:column}.preawardShell .sourceCard .rowActions{justify-content:flex-start}}
 .sourceActions{display:grid;gap:7px;justify-items:end;min-width:210px}.sourceActions .rowActions{justify-content:flex-end}.sourceCard .tiny{overflow-wrap:anywhere;max-width:520px}@media(max-width:720px){.sourceActions{justify-items:start;min-width:0}.sourceActions .rowActions{justify-content:flex-start}}
+
+/* NHRC institutional square-edge visual system: no pill or rounded UI treatments. */
+.brandmark,.navtoggle,.navbtn,.groupico,.btn,.landinghero,.landingcard,.stat,.panel,.badge,.stateBadge,.configured,
+.notice,.filters input,.filters select,.form input,.form textarea,.form select,.flowbox,.step,.progress i,.drawer,.close,
+.field select,.summaryTile,.money,.calendarDays>div,.bar,.tableWrap,.sourceCard,.recordCard,.actionDrawer{
+  border-radius:2px!important;
+}
+.badge,.stateBadge,.configured{border-radius:0!important;padding:3px 7px!important}
+.btn,.linkbutton,.linkBtn{border-radius:0!important}
+.sourceCard,.landingcard,.stat,.panel,.summaryTile,.flowbox,.step,.notice,.tableWrap{border-radius:2px!important}
+.avatar{border-radius:50%}
+.statusline i,.miniDot{border-radius:50%}
