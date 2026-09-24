@@ -82,7 +82,7 @@ class OpportunityDiscoveryService(
             r.enabled,r.scheduleEnabled,r.queryTerms,r.fetchLimit,code
         )
         if(changed==0) throw ResponseStatusException(HttpStatus.NOT_FOUND,"Opportunity source not found")
-        return sources().first { String.valueOf(it["code"]).equals(code,true) }
+        return sources().first { (it["code"] ?: "").toString().equals(code,true) }
     }
 
     @Transactional
@@ -224,7 +224,7 @@ class OpportunityDiscoveryService(
         val text=((item.title + " " + (item.summary ?: "")).lowercase())
         val themes=jdbc.queryForList("select id,code,name from research_themes where active=true")
         val matchedThemes=themes.filter { row ->
-            val words=keywords(String.valueOf(row["name"])) + keywords(String.valueOf(row["code"]))
+            val words=keywords((row["name"] ?: "").toString()) + keywords((row["code"] ?: "").toString())
             words.any { text.contains(it) }
         }
         for(t in matchedThemes){
@@ -237,9 +237,9 @@ class OpportunityDiscoveryService(
         )
         var best=if(matchedThemes.isNotEmpty()) 45.0 + minOf(30.0,matchedThemes.size*10.0) else 25.0
         val rationaleParts=mutableListOf<String>()
-        if(matchedThemes.isNotEmpty()) rationaleParts += "Themes: " + matchedThemes.joinToString(", ") { String.valueOf(it["name"]) }
+        if(matchedThemes.isNotEmpty()) rationaleParts += "Themes: " + matchedThemes.joinToString(", ") { (it["name"] ?: "").toString() }
         for(r in researchers){
-            val expertise=String.valueOf(r["expertise"])
+            val expertise=(r["expertise"] ?: "").toString()
             val matched=keywords(expertise).filter { text.contains(it) }.distinct()
             if(matched.isEmpty()) continue
             val score=minOf(95.0,45.0 + matched.size*10.0 + matchedThemes.size*5.0)
