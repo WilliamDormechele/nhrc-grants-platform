@@ -54,13 +54,16 @@ class OpportunityDiscoveryService(
                from opportunity_source_evidence e join opportunity_sources s on s.id=e.source_id where e.id=?""",id
         )
 
-    fun runAll(trigger:String="MANUAL"): List<DiscoveryRunSummary> =
-        loadSources(enabledOnly=true).map { runSource(it,trigger) }
+    fun runAll(trigger:String="MANUAL"): List<DiscoveryRunSummary> {
+        closeExpiredDiscoveredOpportunities()
+        return loadSources(enabledOnly=true).map { runSource(it,trigger) }
+    }
 
     fun runOne(code:String,trigger:String="MANUAL"): DiscoveryRunSummary {
         val source=loadSources(enabledOnly=false).firstOrNull { it.code.equals(code,true) }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND,"Opportunity source not found")
         if(!source.enabled) throw ResponseStatusException(HttpStatus.CONFLICT,"Opportunity source is disabled")
+        closeExpiredDiscoveredOpportunities()
         return runSource(source,trigger)
     }
 
@@ -70,6 +73,7 @@ class OpportunityDiscoveryService(
         val locked=redis.opsForValue().setIfAbsent(lockKey,token,Duration.ofMinutes(30)) == true
         if(!locked) return emptyList()
         return try {
+            closeExpiredDiscoveredOpportunities()
             loadSources(enabledOnly=true).filter { it.scheduleEnabled }.map { runSource(it,"SCHEDULED") }
         } finally {
             if(redis.opsForValue().get(lockKey)==token) redis.delete(lockKey)
@@ -283,6 +287,14 @@ class OpportunityDiscoveryService(
         jdbc.update(
             "update opportunities set institutional_fit_score=?,fit_rationale=?,updated_at=now() where id=?",
             BigDecimal.valueOf(best),rationaleParts.joinToString(" "),opportunityId
+        )
+    }
+
+    private fun closeExpiredDiscoveredOpportunities(){
+        jdbc.update(
+            """update opportunities set status='CLOSED',updated_at=now()
+               where discovery_source_id is not null and deadline_at is not null and deadline_at<now()
+                 and status in ('OPEN','UPCOMING')"""
         )
     }
 
