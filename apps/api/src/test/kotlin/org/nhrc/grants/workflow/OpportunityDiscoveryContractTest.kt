@@ -17,7 +17,8 @@ class OpportunityDiscoveryContractTest {
             "opportunity_discovery_keys",
             "discovery_review_status",
             "GRANTS_GOV",
-            "UKRI_FUNDING_FINDER"
+            "UKRI_FUNDING_FINDER",
+            "EU_FUNDING_TENDERS"
         ).forEach { assertTrue(sql.contains(it), "Missing discovery contract: $it") }
     }
 
