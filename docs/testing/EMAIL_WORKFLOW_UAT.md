@@ -14,11 +14,11 @@ Local verification completed 16 October 2026 (Europe/London). Local UAT: http://
 
 ## Evidence
 
-- 60 API unit/regression tests passed; zero failures/errors. Five new exact-record routing regressions cover application decisions, reviews, advances, handovers and missing records.
+- 64 API unit/regression tests passed; zero failures/errors. Five new exact-record routing regressions cover application decisions, reviews, advances, handovers and missing records.
 - Transactional PostgreSQL trigger tests passed for returns, rejections, reviewer/investigator recipients, partner finance oversight, completed/rejected task suppression and inactive/unrelated recipient exclusions. All probe domain changes rolled back.
 - 33 lifecycle emails delivered to local SMTP capture. Reserved UAT recipient addresses verified against each message, and recipient-owned inboxes verified using authenticated sessions. Permitted secondary URLs identify the corresponding record. Restricted workspace links/details were withheld; personal notification links remain available.
 - A manual partner advance reminder reached capture; a duplicate was suppressed. Researcher reminder triggering returned 403; a retired-advance reminder returned 409. Another user's notification focus did not disclose their message.
-- Real scheduler (not a directly invoked service method) generated and delivered reminder 27f55aaf-3911-4e3b-9336-dfe159ed30bf for synthetic deliverable 3a76f462-f1ee-412f-8e0c-def756171256 to its named Post-award owner. The capture included the exact deliverable link. The test-only task was cancelled afterward.
+- Real scheduler (not a directly invoked service method) generated and delivered reminder 27f55aaf-3911-4e3b-9336-dfe159ed30bf for synthetic deliverable 3a76f462-f1ee-412f-8e0c-def756171256 to its named Post-award owner. The capture included the exact deliverable link. The test-only task was completed to Accepted with its actual SMTP capture evidence afterward, and was confirmed absent from the reminder queue.
 - All 13 configured role accounts signed in and loaded their permitted catalog and own inbox through http://localhost:3000. Anonymous records returned 401; missing-CSRF mutation returned 403; restricted researcher advance access returned 403.
 - API health UP and web HTTP 200. Both production builds passed, including web type checks. Configured Gmail mode restored after capture testing.
 
@@ -30,6 +30,10 @@ Email delivery was verified through local SMTP capture, not receipt in an extern
 
 These checks used the running database, authenticated HTTP interfaces and SMTP capture. No new browser visual/timing acceptance was performed in this run; do not confuse the production build and HTTP checks with browser usability evidence.
 
-The code upload to the existing GitHub develop branch is separate from internet hosting. No DigitalOcean deployment has occurred: SSH access is still denied, and server capacity, domain/TLS, mail connectivity and isolation from existing ODK services remain to be verified. A temporary Cloudflare tunnel was blocked by automatic approval review and was not started. DigitalOcean was subsequently selected by the user.
+The final release is hosted at https://egms.134-209-21-8.sslip.io on the user-approved existing DigitalOcean server, in separate resource-limited containers and a fresh training database. No local grant database or invitation-encryption key was transferred; automatic approval review rejected that transfer, and the safer fresh installation was used. Cloudflare was not started. The original VA routing template checksum is unchanged and its HTTPS site remained available. See HOSTED_TRAINING_UAT.md for hosted scope and remaining setup.
 
 A database backup was retained locally at .local/backups/pre-email-20261015.dump. No grant database, uploads, encrypted Gmail configuration, SSH private key or local UAT password file is included in the source upload.
+
+Hosted additions: encrypted Brevo HTTPS configuration with test-before-enable, a 300-message rolling 24-hour application cap, current recipient checks, provider-specific delivery labels and hosted record links. Existing Gmail settings remain available locally. Actual Brevo delivery awaits the owner entering their key and confirming the connection email; no actual Brevo inbox receipt is asserted.
+
+Fresh-install repair: a Flyway callback prepares verified missing legacy dependencies immediately before immutable V013. No historical migration version/checksum was rewritten. The complete versioned/repeatable schema preflight and the actual DigitalOcean Flyway startup through V022 passed. Callback registration with a null discovery context is regression-tested.

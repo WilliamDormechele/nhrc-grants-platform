@@ -82,7 +82,7 @@ export default function CommunicationsWorkspace({name}:{name:string}){
 <div className="feedback info email-transport-summary">
 <strong>Email transport: {human(data.emailMode)}
 </strong>
-<p>{data.emailMode==="LOCAL_CAPTURE"?<>UAT emails are delivered to the local capture inbox at <a href="http://localhost:8026" target="_blank" rel="noreferrer">Open UAT email inbox</a>. Connect Gmail using Email delivery setup below.</>:"Delivery uses the configured mail service. Check the delivery log for failures."}
+<p>{data.emailMode==="LOCAL_CAPTURE"?<>UAT emails are delivered to the local capture inbox at <a href="http://localhost:8026" target="_blank" rel="noreferrer">Open UAT email inbox</a>. Connect Brevo or Gmail using Email delivery setup below.</>:"Delivery uses the configured mail service. Check the delivery log for failures."}
 </p>
 </div>
 <EmailDeliverySetup onModeChange={mode=>setData({...data,emailMode:mode})}/>
@@ -259,7 +259,7 @@ export default function CommunicationsWorkspace({name}:{name:string}){
 <td>{human(r.status)}{r.last_error&&<small>{r.last_error}
 </small>}
 </td>
-<td>{r.delivery_mode==="GMAIL"?"Gmail":"Local UAT inbox"}</td>
+<td>{r.delivery_mode==="GMAIL"?"Gmail":r.delivery_mode==="BREVO"?"Brevo":"Capture inbox"}</td>
 <td>{r.attempts}
 </td>
 <td>{r.sent_at?new Date(r.sent_at).toLocaleString("en-GB"):"Pending"}
