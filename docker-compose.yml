@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-nhrc_grants}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_locally}
     ports:
-      - "${POSTGRES_PORT:-5436}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5436}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -39,9 +39,26 @@ services:
     container_name: nhrc-grants-api
     restart: unless-stopped
     environment:
+      SPRING_MAIL_HOST: ${NHRC_SMTP_HOST:-mailpit}
+      SPRING_MAIL_PORT: ${NHRC_SMTP_PORT:-1025}
+      SPRING_MAIL_USERNAME: ${NHRC_SMTP_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${NHRC_SMTP_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${NHRC_SMTP_AUTH:-false}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${NHRC_SMTP_STARTTLS:-false}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_CONNECTIONTIMEOUT: 5000
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_TIMEOUT: 5000
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_WRITETIMEOUT: 5000
+      NHRC_ALLOWED_ORIGINS: ${NHRC_ALLOWED_ORIGINS:-http://localhost:3000}
+      NHRC_PORTAL_URL: ${NHRC_PORTAL_URL:-http://localhost:3000}
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      NHRC_MAIL_FROM: ${NHRC_SMTP_FROM:-grants@nhrc.local}
+      NHRC_MAIL_MODE: ${NHRC_SMTP_MODE:-LOCAL_CAPTURE}
+      NHRC_AI_URL: http://ollama:11434
+      NHRC_AI_MODEL: qwen3.5:4b
       APP_ENV: ${APP_ENV:-development}
-      AUTH_MODE: ${AUTH_MODE:-development}
+      AUTH_MODE: ${AUTH_MODE:-uat}
       API_PORT: 8080
+      NHRC_BACKUP_DIRECTORY: /app/backups
       POSTGRES_DB: ${POSTGRES_DB:-nhrc_grants}
       POSTGRES_USER: ${POSTGRES_USER:-nhrc_grants}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_locally}
@@ -53,12 +70,16 @@ services:
       OPPORTUNITY_DISCOVERY_CRON: "${OPPORTUNITY_DISCOVERY_CRON:-0 15 6 * * *}"
       OPPORTUNITY_DISCOVERY_ZONE: ${OPPORTUNITY_DISCOVERY_ZONE:-UTC}
     ports:
-      - "${API_PORT:-8080}:8080"
+      - "127.0.0.1:${API_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+    volumes:
+      - ./.local/managed-backups:/app/backups
+      - ./.local/mail-config:/app/mail-config
 
   web:
     build:
@@ -68,13 +89,39 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:8080}
+      API_INTERNAL_URL: http://api:8080
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       api:
         condition: service_started
 
+  mailpit:
+    image: axllent/mailpit:v1.31.6
+    container_name: nhrc-grants-mailpit
+    environment:
+      MP_DATABASE: /data/mailpit.db
+    volumes:
+      - mailpit_data:/data
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8026:8025"
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: nhrc-grants-ollama
+    restart: unless-stopped
+    mem_limit: 6g
+    cpus: 4
+    environment:
+      OLLAMA_NUM_PARALLEL: 1
+      OLLAMA_MAX_LOADED_MODELS: 1
+      OLLAMA_NO_CLOUD: "1"
+    volumes:
+      - ollama_data:/root/.ollama
+
 volumes:
   postgres_data:
   redis_data:
+  mailpit_data:
+  ollama_data:

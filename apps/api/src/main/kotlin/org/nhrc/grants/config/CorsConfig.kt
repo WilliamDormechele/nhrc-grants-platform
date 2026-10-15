@@ -9,7 +9,7 @@ import org.springframework.web.filter.CorsFilter
 @Configuration
 class CorsConfig {
  @Bean fun corsFilter():CorsFilter {
-  val c=CorsConfiguration(); c.allowedOrigins=listOf("http://localhost:3000"); c.allowedMethods=listOf("GET","POST","PUT","PATCH","DELETE","OPTIONS"); c.allowedHeaders=listOf("*"); c.allowCredentials=true
+  val c=CorsConfiguration(); c.allowedOrigins=(System.getenv("NHRC_ALLOWED_ORIGINS")?:"http://localhost:3000").split(",").map{it.trim()}.filter{it.isNotBlank()}; c.allowedMethods=listOf("GET","POST","PUT","PATCH","DELETE","OPTIONS"); c.allowedHeaders=listOf("*"); c.allowCredentials=true
   val s=UrlBasedCorsConfigurationSource(); s.registerCorsConfiguration("/**",c); return CorsFilter(s)
  }
 }

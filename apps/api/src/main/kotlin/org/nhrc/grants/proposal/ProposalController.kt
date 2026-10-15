@@ -42,7 +42,10 @@ class ProposalController(private val jdbc:JdbcTemplate){
 
  @PostMapping("/{applicationId}/budget") @Transactional
  fun addBudgetLine(@PathVariable applicationId:UUID,@RequestBody r:BudgetLineCreate):Map<String,Any>{
+  if(r.category.isBlank())throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Record the budget category")
+  if(r.funderAmount+r.nhrcContribution+r.partnerAmount>r.quantity*r.unitCost)throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Budget contributions exceed the calculated line cost")
   if(r.yearNo<1 || r.quantity<BigDecimal.ZERO || r.unitCost<BigDecimal.ZERO) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Invalid budget values")
+  if(r.funderAmount<BigDecimal.ZERO || r.nhrcContribution<BigDecimal.ZERO || r.partnerAmount<BigDecimal.ZERO) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Budget contributions cannot be negative")
   if(r.currency.length!=3) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Currency must be a 3-letter code")
   val id=UUID.randomUUID()
   jdbc.update("""insert into application_budget_lines(id,application_id,category,description,year_no,quantity,unit_cost,currency,funder_amount,nhrc_contribution,partner_amount) values (?,?,?,?,?,?,?,?,?,?,?)""",id,applicationId,r.category,r.description,r.yearNo,r.quantity,r.unitCost,r.currency.uppercase(),r.funderAmount,r.nhrcContribution,r.partnerAmount)

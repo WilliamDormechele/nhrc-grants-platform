@@ -1,8 +1,8 @@
 import {BarChart3,BriefcaseBusiness,CircleDollarSign,FlaskConical,Gauge,LockKeyhole,Settings,ShieldCheck,ShoppingCart,Target,UserRound,UsersRound} from "lucide-react";
 export type Group={name:string;icon:any;items:string[]};
 export const groups:Group[]=[
-{name:"Executive",icon:Gauge,items:["Executive Overview","Portfolio Analytics","Pipeline Analytics"]},
-{name:"Pre-Award",icon:Target,items:["Opportunity Intelligence","Eligibility & Fit","Applications","Proposal Workspace","Budget Builder","Internal Review","Approvals","Submissions"]},
+{name:"Executive",icon:Gauge,items:["Executive Overview","Intelligence & Automation","Portfolio Analytics","Pipeline Analytics"]},
+{name:"Pre-Award",icon:Target,items:["Opportunity Intelligence","Funding Register","Eligibility & Fit","Applications","Proposal Workspace","Budget Builder","Internal Review","Approvals","Submissions"]},
 {name:"Award Management",icon:BriefcaseBusiness,items:["Award Register","Award Setup","Contracts & Agreements","Partners & Subawards","Due Diligence","Amendments","Deliverables","Financial Monitoring","Risks & Issues"]},
 {name:"Finance & Accounts",icon:CircleDollarSign,items:["Finance Dashboard","Award Budgets","Funds Received","Expenditure","Commitments","Budget vs Actual","Partner Advances","Financial Reporting","Financial Forecasts","Reconciliations","Financial Approvals","Financial Closeout"]},
 {name:"Procurement",icon:ShoppingCart,items:["Procurement Dashboard","Procurement Plans","Requisitions","Purchase Orders","Suppliers & Due Diligence","Procurement Contracts","Equipment & Assets","Procurement Tracking"]},
@@ -10,10 +10,10 @@ export const groups:Group[]=[
 {name:"Research Governance",icon:ShieldCheck,items:["Ethics & Regulatory Links","Conflicts / Declarations","Compliance Calendar","Privacy & Information Governance","Legal & Contracts Review"]},
 {name:"Performance",icon:BarChart3,items:["Reports","Outputs","Impact","Closeout"]},
 {name:"People & Organisation",icon:UsersRound,items:["Researcher Profiles","Partner Directory","Funder Directory","NHRC Institutional Profile"]},
-{name:"Personal",icon:UserRound,items:["My Work","Notifications","Calendar"]},
-{name:"Administration",icon:Settings,items:["Users & Roles","Organisation Structure","Approval Rules","Delegations & Acting Roles","Workflow Configuration","Forms & Fields","Reference Data","Templates","Notification Rules","Calendar Rules","Data Import & Export","Records & Archives","Access Reviews","Help & Support","Audit Log","System Settings"]},
+{name:"Personal",icon:UserRound,items:["My Work","Notifications","Announcements","Role Guide","Calendar"]},
+{name:"Administration",icon:Settings,items:["Users & Roles","Organisation Structure","Approval Rules","Delegations & Acting Roles","Workflow Configuration","All Forms","Forms & Fields","Reference Data","Templates","Notification Rules","Communications Control","Calendar Rules","Data Import & Export","Records & Archives","Access Reviews","Help & Support","Audit Log","System Settings"]},
 {name:"IT & Security",icon:LockKeyhole,items:["System Health","Service Monitoring","Integration Health","Job Monitor","Backup & Recovery","Security Centre","Security Events","Privileged Activity","Business Continuity","Environment Management","Superadmin Console"]}];
-export const api=process.env.NEXT_PUBLIC_API_URL||"http://localhost:8080";
+export {api} from "./client";
 export const endpoints:Record<string,string>={
 "Portfolio Analytics":"/api/portfolio/ending",
 "Pipeline Analytics":"/api/executive/pipeline",

@@ -12,7 +12,7 @@ data class ApplicationCreate(val opportunityId:UUID?,val title:String,val deadli
 
 @RestController
 @RequestMapping("/api/applications")
-class ApplicationWriteController(private val jdbc:JdbcTemplate){
+class ApplicationWriteController(private val jdbc:JdbcTemplate,private val identity:org.nhrc.grants.config.PlatformIdentity){
  @PostMapping @Transactional
  fun create(@RequestBody r:ApplicationCreate):Map<String,Any>{
   if(r.title.isBlank()) throw ResponseStatusException(HttpStatus.BAD_REQUEST,"Application title is required")
@@ -25,8 +25,8 @@ class ApplicationWriteController(private val jdbc:JdbcTemplate){
 
   val id=UUID.randomUUID()
   val ref="APP-${java.time.Year.now().value}-${id.toString().take(8).uppercase()}"
-  jdbc.update("insert into applications(id,reference,opportunity_id,title,owner_user_id,deadline_at) values (?,?,?,?,?,?)",id,ref,r.opportunityId,r.title,r.ownerUserId,r.deadlineAt)
-  jdbc.update("insert into application_stage_history(application_id,to_stage,note,changed_by) values (?,'DISCOVERED','Application created',?)",id,r.ownerUserId)
+  jdbc.update("insert into applications(id,reference,opportunity_id,title,owner_user_id,deadline_at) values (?,?,?,?,?,?)",id,ref,r.opportunityId,r.title,r.ownerUserId ?: identity.current().id,r.deadlineAt)
+  jdbc.update("insert into application_stage_history(application_id,to_stage,note,changed_by) values (?,'DISCOVERED','Application created',?)",id,r.ownerUserId ?: identity.current().id)
 
   val requirements=listOf(
    "TECHNICAL" to "Technical proposal / concept note",

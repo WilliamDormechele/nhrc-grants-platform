@@ -1,0 +1,6859 @@
+[
+  {
+    "key": "awards",
+    "table": "awards",
+    "group": "Award Management",
+    "pages": [
+      "Award Register",
+      "Award Setup"
+    ],
+    "title": "Awards",
+    "description": "Manage award dates, allocations and activation. Create awards from a successful application in Pre-Award.",
+    "fields": [
+      {
+        "name": "reference",
+        "label": "Award reference",
+        "type": "text",
+        "help": "Identifier in the signed award agreement",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "title",
+        "label": "Award title",
+        "type": "text",
+        "help": "Use the funded project title",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "funder_id",
+        "label": "Funder",
+        "type": "reference",
+        "help": "",
+        "reference": "funders",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "principal_investigator_id",
+        "label": "Principal investigator",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "start_date",
+        "label": "Award start",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "end_date",
+        "label": "Award end",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "currency",
+        "label": "Award currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "total_award",
+        "label": "Total signed award",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      },
+      {
+        "name": "nhrc_allocation",
+        "label": "NHRC allocation",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      },
+      {
+        "name": "partner_allocation",
+        "label": "Partner allocation",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      }
+    ],
+    "columns": [
+      "reference",
+      "title",
+      "status",
+      "end_date",
+      "currency",
+      "nhrc_allocation"
+    ],
+    "states": [
+      "SETUP",
+      "ACTIVE",
+      "CLOSEOUT",
+      "CLOSED"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER"
+    ],
+    "create": false,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "agreements",
+    "table": "contracts",
+    "group": "Award Management",
+    "pages": [
+      "Contracts & Agreements",
+      "Legal & Contracts Review"
+    ],
+    "title": "Research agreements",
+    "description": "Record the agreement parties, authorised document, effective dates and accountable owner.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Linked award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "partner_id",
+        "label": "Counterparty",
+        "type": "reference",
+        "help": "",
+        "reference": "partners",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "contract_type",
+        "label": "Agreement type",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "FUNDING",
+          "SUBAWARD",
+          "DATA_USE",
+          "MATERIAL_TRANSFER",
+          "COLLABORATION",
+          "SERVICE"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "reference",
+        "label": "Agreement reference",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "title",
+        "label": "Agreement title",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "owner_user_id",
+        "label": "Agreement owner",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "effective_date",
+        "label": "Effective date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "expiry_date",
+        "label": "Expiry date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "storage_key",
+        "label": "Executed or draft agreement",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "reference",
+      "title",
+      "contract_type",
+      "status",
+      "expiry_date"
+    ],
+    "states": [
+      "DRAFT",
+      "IN_REVIEW",
+      "EXECUTED",
+      "EXPIRED",
+      "CLOSED"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER",
+      "GOVERNANCE_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "subawards",
+    "table": "award_partners",
+    "group": "Award Management",
+    "pages": [
+      "Partners & Subawards"
+    ],
+    "title": "Partner allocations",
+    "description": "Link the funded partner, project role, allocation and agreement record. All allocations retain the award currency.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Parent award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "partner_id",
+        "label": "Partner organisation",
+        "type": "reference",
+        "help": "",
+        "reference": "partners",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "role",
+        "label": "Partner responsibility",
+        "type": "textarea",
+        "help": "Explain the partner delivery scope",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "approved_allocation",
+        "label": "Signed allocation",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Allocation currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "agreement_status",
+        "label": "Agreement status",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "PENDING",
+          "IN_REVIEW",
+          "ACTIVE",
+          "CLOSED"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 40,
+        "defaultValue": null,
+        "dbType": "varchar"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "partner_id",
+      "role",
+      "approved_allocation",
+      "currency",
+      "agreement_status"
+    ],
+    "states": [],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "diligence",
+    "table": "due_diligence_reviews",
+    "group": "Award Management",
+    "pages": [
+      "Due Diligence"
+    ],
+    "title": "Due diligence reviews",
+    "description": "Record evidence-based partner or supplier assessments, findings, conditions, risk and review expiry.",
+    "fields": [
+      {
+        "name": "entity_type",
+        "label": "Organisation category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "PARTNER",
+          "SUPPLIER"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 40,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "entity_id",
+        "label": "Organisation assessed",
+        "type": "reference",
+        "help": "",
+        "reference": "entity",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "review_type",
+        "label": "Assessment scope",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "ORGANISATIONAL",
+          "FINANCIAL",
+          "LEGAL",
+          "SAFEGUARDING",
+          "PROCUREMENT"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "findings",
+        "label": "Assessment findings",
+        "type": "textarea",
+        "help": "Summarise the evidence reviewed and outstanding issues",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "conditions",
+        "label": "Conditions and follow-up",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "risk_rating",
+        "label": "Risk assessment",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "CRITICAL"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 30,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "expires_at",
+        "label": "Review valid until",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      }
+    ],
+    "columns": [
+      "entity_type",
+      "entity_id",
+      "review_type",
+      "status",
+      "risk_rating",
+      "expires_at"
+    ],
+    "states": [
+      "PENDING",
+      "IN_REVIEW",
+      "APPROVED",
+      "CONDITIONAL",
+      "REJECTED"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER",
+      "PROCUREMENT_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "amendments",
+    "table": "amendments",
+    "group": "Award Management",
+    "pages": [
+      "Amendments"
+    ],
+    "title": "Award amendments",
+    "description": "Maintain an auditable amendment request with justification, sponsor requirements and effective date.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "amendment_type",
+        "label": "Amendment category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "NO_COST_EXTENSION",
+          "BUDGET_REVISION",
+          "SCOPE_CHANGE",
+          "PERSONNEL_CHANGE",
+          "PARTNER_CHANGE"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "reference",
+        "label": "Amendment reference",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "justification",
+        "label": "Change requested and justification",
+        "type": "textarea",
+        "help": "Explain the change and its effect on delivery, budget and reporting",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "funder_approval_required",
+        "label": "Funder approval required",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": false,
+        "dbType": "bool"
+      },
+      {
+        "name": "funder_status",
+        "label": "Funder decision",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "NOT_REQUIRED",
+          "PENDING",
+          "APPROVED",
+          "REJECTED"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 40,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "effective_date",
+        "label": "Effective date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "amendment_type",
+      "reference",
+      "internal_status",
+      "funder_status"
+    ],
+    "states": [
+      "DRAFT",
+      "IN_REVIEW",
+      "APPROVED",
+      "COMPLETED"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "internal_status",
+    "idField": "id"
+  },
+  {
+    "key": "deliverables",
+    "table": "award_deliverables",
+    "group": "Award Management",
+    "pages": [
+      "Deliverables"
+    ],
+    "title": "Award deliverables",
+    "description": "Assign each contractual milestone to an owner, track its due date and retain submission evidence.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "deliverable_type",
+        "label": "Deliverable category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "TECHNICAL_REPORT",
+          "FINANCIAL_REPORT",
+          "DATASET",
+          "PUBLICATION",
+          "MILESTONE",
+          "OTHER"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "title",
+        "label": "Contractual deliverable",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "due_date",
+        "label": "Contractual due date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "owner_user_id",
+        "label": "Responsible owner",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "evidence_storage_key",
+        "label": "Deliverable evidence",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "title",
+      "due_date",
+      "owner_user_id",
+      "status"
+    ],
+    "states": [
+      "NOT_STARTED",
+      "IN_PROGRESS",
+      "SUBMITTED",
+      "ACCEPTED"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER",
+      "RESEARCHER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "risks",
+    "table": "award_risks",
+    "group": "Award Management",
+    "pages": [
+      "Risks & Issues"
+    ],
+    "title": "Award risks and issues",
+    "description": "Assess exposure, assign an accountable owner and track mitigation and review dates.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "title",
+        "label": "Risk or issue",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "description",
+        "label": "Cause and consequence",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "likelihood",
+        "label": "Likelihood",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "LOW",
+          "MEDIUM",
+          "HIGH"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 30,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "impact",
+        "label": "Impact",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "CRITICAL"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 30,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "rating",
+        "label": "Overall rating",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "CRITICAL"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 30,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "owner_user_id",
+        "label": "Risk owner",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "mitigation",
+        "label": "Mitigation and next action",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "review_date",
+        "label": "Next review",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      }
+    ],
+    "columns": [
+      "title",
+      "award_id",
+      "rating",
+      "owner_user_id",
+      "review_date",
+      "status"
+    ],
+    "states": [
+      "OPEN",
+      "MITIGATING",
+      "RESOLVED",
+      "CLOSED"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER",
+      "RESEARCHER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "positions",
+    "table": "award_financial_positions",
+    "group": "Finance & Accounts",
+    "pages": [
+      "Award Budgets",
+      "Budget vs Actual"
+    ],
+    "title": "Award budget positions",
+    "description": "Review approved budget, cash, expenditure and commitments. Reconciled balances are maintained by Finance; the record does not post to an external ledger.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "approved_budget",
+        "label": "Approved NHRC budget",
+        "type": "number",
+        "help": "Budget authorised for NHRC",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      },
+      {
+        "name": "cash_received",
+        "label": "Reconciled cash received",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      },
+      {
+        "name": "expenditure",
+        "label": "Reconciled expenditure",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      },
+      {
+        "name": "commitments",
+        "label": "Open commitments",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "approved_budget",
+      "cash_received",
+      "expenditure",
+      "commitments"
+    ],
+    "states": [],
+    "writers": [
+      "FINANCE_OFFICER",
+      "FINANCE_APPROVER"
+    ],
+    "create": false,
+    "filter": {},
+    "stateField": "",
+    "idField": "award_id"
+  },
+  {
+    "key": "receipts",
+    "table": "fund_receipts",
+    "group": "Finance & Accounts",
+    "pages": [
+      "Funds Received"
+    ],
+    "title": "Funder receipts",
+    "description": "Plan instalments and record cash received with bank or remittance evidence and matching award currency.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "instalment_no",
+        "label": "Instalment number",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "int4"
+      },
+      {
+        "name": "reference",
+        "label": "Remittance reference",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 120,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "currency",
+        "label": "Receipt currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "expected_amount",
+        "label": "Expected instalment",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      },
+      {
+        "name": "expected_date",
+        "label": "Expected receipt date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "received_amount",
+        "label": "Amount actually received",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "received_date",
+        "label": "Actual receipt date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "reference",
+      "expected_amount",
+      "received_amount",
+      "currency",
+      "received_date"
+    ],
+    "states": [],
+    "writers": [
+      "FINANCE_OFFICER",
+      "FINANCE_APPROVER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "expenditure",
+    "table": "expenditures",
+    "group": "Finance & Accounts",
+    "pages": [
+      "Expenditure"
+    ],
+    "title": "Grant expenditure",
+    "description": "Capture a grant cost with its date, cost category, ledger reference and reconciliation state.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award charged",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "transaction_date",
+        "label": "Transaction date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "category",
+        "label": "Cost category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "PERSONNEL",
+          "TRAVEL",
+          "EQUIPMENT",
+          "CONSUMABLES",
+          "SERVICES",
+          "SUBAWARDS",
+          "INDIRECT_COSTS",
+          "OTHER"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 120,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "description",
+        "label": "Cost description",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "amount",
+        "label": "Transaction amount",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Transaction currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "finance_reference",
+        "label": "Ledger or voucher reference",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 120,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "reconciled",
+        "label": "Reconciled to ledger",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": false,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "transaction_date",
+      "award_id",
+      "category",
+      "amount",
+      "currency",
+      "reconciled"
+    ],
+    "states": [],
+    "writers": [
+      "FINANCE_OFFICER",
+      "FINANCE_APPROVER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "commitments",
+    "table": "commitments",
+    "group": "Finance & Accounts",
+    "pages": [
+      "Commitments"
+    ],
+    "title": "Outstanding commitments",
+    "description": "Record expected costs separately from actual expenditure and release a commitment when settled or cancelled.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "category",
+        "label": "Cost category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "PERSONNEL",
+          "TRAVEL",
+          "EQUIPMENT",
+          "CONSUMABLES",
+          "SERVICES",
+          "SUBAWARDS",
+          "OTHER"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 120,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "description",
+        "label": "Commitment and supplier details",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "amount",
+        "label": "Committed amount",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Commitment currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "expected_date",
+        "label": "Expected settlement",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "category",
+      "description",
+      "amount",
+      "currency",
+      "status"
+    ],
+    "states": [
+      "OPEN",
+      "SETTLED",
+      "CANCELLED"
+    ],
+    "writers": [
+      "FINANCE_OFFICER",
+      "FINANCE_APPROVER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "advances",
+    "table": "partner_advances",
+    "group": "Finance & Accounts",
+    "pages": [
+      "Partner Advances"
+    ],
+    "title": "Partner advances",
+    "description": "Track funds advanced, amounts accounted for and the retirement deadline against the signed partner allocation.",
+    "fields": [
+      {
+        "name": "award_partner_id",
+        "label": "Award and partner",
+        "type": "reference",
+        "help": "",
+        "reference": "subawards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "amount_advanced",
+        "label": "Amount advanced",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "amount_accounted",
+        "label": "Amount accounted for",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Advance currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "advanced_date",
+        "label": "Advance date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "retirement_due_date",
+        "label": "Retirement deadline",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      }
+    ],
+    "columns": [
+      "award_partner_id",
+      "amount_advanced",
+      "amount_accounted",
+      "currency",
+      "retirement_due_date",
+      "status"
+    ],
+    "states": [
+      "OUTSTANDING",
+      "PARTIALLY_RETIRED",
+      "RETIRED"
+    ],
+    "writers": [
+      "FINANCE_OFFICER",
+      "FINANCE_APPROVER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "financial-reports",
+    "table": "financial_reports",
+    "group": "Finance & Accounts",
+    "pages": [
+      "Financial Reporting"
+    ],
+    "title": "Financial reporting",
+    "description": "Prepare reporting periods, assign preparation and review, attach the authorised report and record submission separately.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "period_start",
+        "label": "Reporting period start",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "period_end",
+        "label": "Reporting period end",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "due_date",
+        "label": "Funder deadline",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "prepared_by",
+        "label": "Prepared by",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "reviewed_by",
+        "label": "Finance reviewer",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "authorised_by",
+        "label": "Authorising officer",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "storage_key",
+        "label": "Financial report",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "period_end",
+      "due_date",
+      "status",
+      "prepared_by"
+    ],
+    "states": [
+      "NOT_STARTED",
+      "IN_PROGRESS",
+      "IN_REVIEW",
+      "APPROVED",
+      "SUBMITTED",
+      "ACCEPTED"
+    ],
+    "writers": [
+      "FINANCE_OFFICER",
+      "FINANCE_APPROVER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "forecasts",
+    "table": "financial_forecasts",
+    "group": "Finance & Accounts",
+    "pages": [
+      "Financial Forecasts"
+    ],
+    "title": "Finance forecasts",
+    "description": "Maintain dated financial scenarios with explicit assumptions and expenditure and commitment estimates.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "forecast_date",
+        "label": "Forecast prepared on",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "period_end",
+        "label": "Forecast through",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "forecast_expenditure",
+        "label": "Projected expenditure",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "forecast_commitments",
+        "label": "Projected commitments",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 0,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Forecast currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "assumptions",
+        "label": "Scenario assumptions",
+        "type": "textarea",
+        "help": "State staffing, procurement, exchange-rate and timing assumptions",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "forecast_date",
+      "period_end",
+      "forecast_expenditure",
+      "forecast_commitments",
+      "currency"
+    ],
+    "states": [],
+    "writers": [
+      "FINANCE_OFFICER",
+      "FINANCE_APPROVER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "reconciliations",
+    "table": "reconciliations",
+    "group": "Finance & Accounts",
+    "pages": [
+      "Reconciliations"
+    ],
+    "title": "Ledger reconciliations",
+    "description": "Compare ledger and platform amounts at a specified period end and document the reason for any variance.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "period_end",
+        "label": "Period end",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "ledger_amount",
+        "label": "Ledger total",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "platform_amount",
+        "label": "Platform total",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "note",
+        "label": "Variance explanation and corrective action",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "period_end",
+      "ledger_amount",
+      "platform_amount",
+      "variance",
+      "status"
+    ],
+    "states": [
+      "OPEN",
+      "IN_REVIEW",
+      "RECONCILED"
+    ],
+    "writers": [
+      "FINANCE_OFFICER",
+      "FINANCE_APPROVER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "financial-approvals",
+    "table": "financial_approvals",
+    "group": "Finance & Accounts",
+    "pages": [
+      "Financial Approvals"
+    ],
+    "title": "Financial decisions",
+    "description": "Record a financial decision against an identifiable transaction. Preparing and deciding officers remain separate.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "entity_type",
+        "label": "Transaction category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "EXPENDITURE",
+          "COMMITMENT",
+          "RECEIPT",
+          "ADVANCE"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "entity_id",
+        "label": "Transaction record",
+        "type": "reference",
+        "help": "",
+        "reference": "financial_entity",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "approval_type",
+        "label": "Decision requested",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "amount",
+        "label": "Amount for decision",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "assigned_user_id",
+        "label": "Assigned approver",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "decision_note",
+        "label": "Decision reason",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "approval_type",
+      "amount",
+      "currency",
+      "status",
+      "assigned_user_id"
+    ],
+    "states": [
+      "PENDING",
+      "APPROVED",
+      "RETURNED",
+      "REJECTED"
+    ],
+    "writers": [
+      "FINANCE_OFFICER",
+      "FINANCE_APPROVER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "plans",
+    "table": "procurement_plans",
+    "group": "Procurement",
+    "pages": [
+      "Procurement Plans",
+      "Laboratory Procurement"
+    ],
+    "title": "Procurement plans",
+    "description": "Specify the grant-funded requirement, estimated cost, procurement method, planned date and owner.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Funding award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "item_description",
+        "label": "Specification and delivery requirement",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "category",
+        "label": "Procurement category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "EQUIPMENT",
+          "CONSUMABLES",
+          "SERVICES",
+          "WORKS"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "estimated_amount",
+        "label": "Estimated cost",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Cost currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "planned_date",
+        "label": "Planned procurement date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "procurement_method",
+        "label": "Procurement method",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "COMPETITIVE",
+          "REQUEST_FOR_QUOTATIONS",
+          "SINGLE_SOURCE",
+          "FRAMEWORK"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "owner_user_id",
+        "label": "Procurement owner",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      }
+    ],
+    "columns": [
+      "item_description",
+      "award_id",
+      "estimated_amount",
+      "currency",
+      "planned_date",
+      "status"
+    ],
+    "states": [
+      "PLANNED",
+      "IN_PROGRESS",
+      "COMPLETE",
+      "CANCELLED"
+    ],
+    "writers": [
+      "PROCUREMENT_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "requisitions",
+    "table": "procurement_requisitions",
+    "group": "Procurement",
+    "pages": [
+      "Requisitions",
+      "Procurement Tracking"
+    ],
+    "title": "Purchase requisitions",
+    "description": "Request a specified purchase against a grant and optional procurement plan before an order is issued.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Funding award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "plan_id",
+        "label": "Procurement plan",
+        "type": "reference",
+        "help": "",
+        "reference": "plans",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "reference",
+        "label": "Requisition reference",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "description",
+        "label": "Specification and business justification",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "amount",
+        "label": "Requested amount",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Requisition currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      }
+    ],
+    "columns": [
+      "reference",
+      "description",
+      "award_id",
+      "amount",
+      "currency",
+      "status"
+    ],
+    "states": [
+      "DRAFT",
+      "SUBMITTED",
+      "APPROVED",
+      "RETURNED",
+      "REJECTED",
+      "CLOSED"
+    ],
+    "writers": [
+      "PROCUREMENT_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "orders",
+    "table": "purchase_orders",
+    "group": "Procurement",
+    "pages": [
+      "Purchase Orders"
+    ],
+    "title": "Purchase orders",
+    "description": "Issue an order against an approved requisition, identify the supplier and track delivery dates.",
+    "fields": [
+      {
+        "name": "requisition_id",
+        "label": "Approved requisition",
+        "type": "reference",
+        "help": "",
+        "reference": "requisitions",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "supplier_id",
+        "label": "Selected supplier",
+        "type": "reference",
+        "help": "",
+        "reference": "suppliers",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "reference",
+        "label": "Purchase order number",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "amount",
+        "label": "Order value",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Order currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "issued_date",
+        "label": "Issue date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "expected_delivery_date",
+        "label": "Expected delivery",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      }
+    ],
+    "columns": [
+      "reference",
+      "requisition_id",
+      "supplier_id",
+      "amount",
+      "currency",
+      "status"
+    ],
+    "states": [
+      "ISSUED",
+      "PART_DELIVERED",
+      "DELIVERED",
+      "CLOSED",
+      "CANCELLED"
+    ],
+    "writers": [
+      "PROCUREMENT_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "suppliers",
+    "table": "suppliers",
+    "group": "Procurement",
+    "pages": [
+      "Suppliers & Due Diligence"
+    ],
+    "title": "Approved supplier directory",
+    "description": "Maintain supplier identity and contact information. Due diligence decisions are recorded in the review workspace.",
+    "fields": [
+      {
+        "name": "name",
+        "label": "Registered supplier name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "country_code",
+        "label": "Country code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "contact_email",
+        "label": "Supplier contact email",
+        "type": "email",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "active",
+        "label": "Available for procurement",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "name",
+      "country_code",
+      "contact_email",
+      "due_diligence_status",
+      "active"
+    ],
+    "states": [],
+    "writers": [
+      "PROCUREMENT_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "procurement-contracts",
+    "table": "procurement_contracts",
+    "group": "Procurement",
+    "pages": [
+      "Procurement Contracts"
+    ],
+    "title": "Supplier contracts",
+    "description": "Link a supplier agreement to its purchase order, dates, value and controlled document.",
+    "fields": [
+      {
+        "name": "purchase_order_id",
+        "label": "Purchase order",
+        "type": "reference",
+        "help": "",
+        "reference": "orders",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "supplier_id",
+        "label": "Supplier",
+        "type": "reference",
+        "help": "",
+        "reference": "suppliers",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "reference",
+        "label": "Contract reference",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "title",
+        "label": "Contract title",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "start_date",
+        "label": "Contract start",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "end_date",
+        "label": "Contract end",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "amount",
+        "label": "Contract value",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Contract currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "storage_key",
+        "label": "Contract document",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "reference",
+      "title",
+      "supplier_id",
+      "amount",
+      "currency",
+      "status"
+    ],
+    "states": [
+      "DRAFT",
+      "IN_REVIEW",
+      "EXECUTED",
+      "CLOSED"
+    ],
+    "writers": [
+      "PROCUREMENT_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "assets",
+    "table": "assets",
+    "group": "Procurement",
+    "pages": [
+      "Equipment & Assets"
+    ],
+    "title": "Grant assets",
+    "description": "Maintain the asset register with serial number, grant ownership, custodian, location and acquisition evidence.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Funding award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "purchase_order_id",
+        "label": "Purchase order",
+        "type": "reference",
+        "help": "",
+        "reference": "orders",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "asset_tag",
+        "label": "Institutional asset tag",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "description",
+        "label": "Asset description",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "serial_number",
+        "label": "Manufacturer serial number",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "location",
+        "label": "Physical location",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "custodian_user_id",
+        "label": "Asset custodian",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "acquired_date",
+        "label": "Acquisition date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "acquisition_cost",
+        "label": "Acquisition cost",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "currency",
+        "label": "Cost currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      }
+    ],
+    "columns": [
+      "asset_tag",
+      "description",
+      "location",
+      "custodian_user_id",
+      "status"
+    ],
+    "states": [
+      "ACTIVE",
+      "IN_REPAIR",
+      "TRANSFERRED",
+      "RETIRED"
+    ],
+    "writers": [
+      "PROCUREMENT_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "laboratory",
+    "table": "laboratory_items",
+    "group": "Laboratory",
+    "pages": [
+      "Reagents & Consumables",
+      "Laboratory Equipment"
+    ],
+    "title": "Laboratory inventory",
+    "description": "Record grant-funded reagents and equipment with stock units, expiry and maintenance or calibration dates.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Funding award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "item_type",
+        "label": "Item category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "REAGENT",
+          "CONSUMABLE",
+          "EQUIPMENT"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 60,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "name",
+        "label": "Item or equipment name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "catalogue_or_asset_ref",
+        "label": "Catalogue number or asset tag",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "quantity",
+        "label": "Current quantity",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "unit",
+        "label": "Stock unit",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 40,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "expiry_date",
+        "label": "Expiry date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "calibration_due_date",
+        "label": "Next calibration",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "maintenance_due_date",
+        "label": "Next maintenance",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      }
+    ],
+    "columns": [
+      "name",
+      "item_type",
+      "quantity",
+      "unit",
+      "expiry_date",
+      "status"
+    ],
+    "states": [
+      "ACTIVE",
+      "QUARANTINED",
+      "OUT_OF_SERVICE",
+      "DISPOSED"
+    ],
+    "writers": [
+      "LABORATORY_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "maintenance",
+    "table": "laboratory_maintenance",
+    "group": "Laboratory",
+    "pages": [
+      "Maintenance & Calibration"
+    ],
+    "title": "Equipment maintenance",
+    "description": "Schedule calibration or maintenance and retain completion dates, provider notes and the service certificate.",
+    "fields": [
+      {
+        "name": "laboratory_item_id",
+        "label": "Equipment",
+        "type": "reference",
+        "help": "",
+        "reference": "laboratory",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "activity_type",
+        "label": "Service activity",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "CALIBRATION",
+          "PREVENTIVE_MAINTENANCE",
+          "REPAIR",
+          "VALIDATION"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "scheduled_date",
+        "label": "Scheduled date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "completed_date",
+        "label": "Completion date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "provider",
+        "label": "Service provider",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "certificate_storage_key",
+        "label": "Service certificate",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "notes",
+        "label": "Service findings and follow-up",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "laboratory_item_id",
+      "activity_type",
+      "scheduled_date",
+      "completed_date",
+      "status"
+    ],
+    "states": [
+      "SCHEDULED",
+      "IN_PROGRESS",
+      "COMPLETE",
+      "CANCELLED"
+    ],
+    "writers": [
+      "LABORATORY_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "compliance",
+    "table": "compliance_records",
+    "group": "Research Governance",
+    "pages": [
+      "Ethics & Regulatory Links",
+      "Laboratory Compliance",
+      "Compliance Calendar"
+    ],
+    "title": "Ethics and regulatory approvals",
+    "description": "Link actual ethics or regulatory approvals to the application or award and track authority, evidence and renewal.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Linked award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "application_id",
+        "label": "Linked application",
+        "type": "reference",
+        "help": "",
+        "reference": "applications",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "compliance_type",
+        "label": "Approval category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "ETHICS",
+          "REGULATORY",
+          "BIOSAFETY",
+          "LABORATORY",
+          "DATA_PROTECTION"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "authority",
+        "label": "Reviewing authority",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "reference",
+        "label": "Approval reference",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 120,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "approved_date",
+        "label": "Approval date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "expiry_date",
+        "label": "Approval expires",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "renewal_due_date",
+        "label": "Renewal due",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "storage_key",
+        "label": "Approval document",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "compliance_type",
+      "authority",
+      "reference",
+      "renewal_due_date",
+      "status"
+    ],
+    "states": [
+      "PENDING",
+      "APPROVED",
+      "CONDITIONAL",
+      "EXPIRED",
+      "CLOSED"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER",
+      "GOVERNANCE_OFFICER",
+      "LABORATORY_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "declarations",
+    "table": "declarations",
+    "group": "Research Governance",
+    "pages": [
+      "Conflicts / Declarations"
+    ],
+    "title": "Conflicts and declarations",
+    "description": "Record the declarant, relevant grant or award, nature of the disclosure and review status.",
+    "fields": [
+      {
+        "name": "user_id",
+        "label": "Person declaring",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "entity_type",
+        "label": "Linked record category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "APPLICATION",
+          "AWARD"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "entity_id",
+        "label": "Linked record",
+        "type": "reference",
+        "help": "",
+        "reference": "grant_entity",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "declaration_type",
+        "label": "Declaration category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "CONFLICT_OF_INTEREST",
+          "FINANCIAL_INTEREST",
+          "OTHER"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "details",
+        "label": "Disclosure and management proposal",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "user_id",
+      "declaration_type",
+      "entity_type",
+      "status",
+      "declared_at"
+    ],
+    "states": [
+      "DECLARED",
+      "IN_REVIEW",
+      "MANAGED",
+      "CLOSED"
+    ],
+    "writers": [
+      "GOVERNANCE_OFFICER",
+      "RESEARCHER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "privacy",
+    "table": "privacy_assessments",
+    "group": "Research Governance",
+    "pages": [
+      "Privacy & Information Governance"
+    ],
+    "title": "Information governance assessments",
+    "description": "Document data categories, lawful basis, access controls, retention, transfers and mitigation for a project.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Linked award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "title",
+        "label": "Assessment title",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "data_categories",
+        "label": "Personal data and sensitivity",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Data and purpose",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "lawful_basis",
+        "label": "Lawful basis and purpose",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Data and purpose",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "retention_period",
+        "label": "Retention and disposal arrangements",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Retention and storage",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "storage_location",
+        "label": "Approved storage locations",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Retention and storage",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "access_controls",
+        "label": "Access permissions and safeguards",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Access and transfers",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "transfer_arrangements",
+        "label": "Partner or international transfers",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Access and transfers",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "risks",
+        "label": "Privacy risks",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Risks and review",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "mitigation",
+        "label": "Mitigation and remaining decisions",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Risks and review",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "review_date",
+        "label": "Next review",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "owner_user_id",
+        "label": "Assessment owner",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      }
+    ],
+    "columns": [
+      "title",
+      "award_id",
+      "owner_user_id",
+      "review_date",
+      "status"
+    ],
+    "states": [
+      "DRAFT",
+      "IN_REVIEW",
+      "APPROVED",
+      "REQUIRES_ACTION",
+      "CLOSED"
+    ],
+    "writers": [
+      "GOVERNANCE_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "reports",
+    "table": "reports",
+    "group": "Performance",
+    "pages": [
+      "Reports"
+    ],
+    "title": "Funder reports",
+    "description": "Plan the reporting period, assign an owner and retain submitted and accepted evidence.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "report_type",
+        "label": "Report category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "TECHNICAL",
+          "FINANCIAL",
+          "PROGRESS",
+          "FINAL"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "period_start",
+        "label": "Period start",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "period_end",
+        "label": "Period end",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "due_date",
+        "label": "Funder deadline",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "owner_user_id",
+        "label": "Report owner",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "storage_key",
+        "label": "Report document",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "report_type",
+      "period_end",
+      "due_date",
+      "status"
+    ],
+    "states": [
+      "NOT_STARTED",
+      "IN_PROGRESS",
+      "SUBMITTED",
+      "ACCEPTED"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER",
+      "RESEARCHER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "outputs",
+    "table": "research_outputs",
+    "group": "Performance",
+    "pages": [
+      "Outputs"
+    ],
+    "title": "Research outputs",
+    "description": "Record outputs attributable to an award with a verifiable citation, publication date and source.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Funding award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "output_type",
+        "label": "Output category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "PUBLICATION",
+          "DATASET",
+          "SOFTWARE",
+          "POLICY_BRIEF",
+          "CONFERENCE",
+          "TRAINING"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "title",
+        "label": "Output title",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "citation_or_reference",
+        "label": "Citation or persistent identifier",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "url",
+        "label": "Public evidence URL",
+        "type": "url",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "output_date",
+        "label": "Published or released on",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      }
+    ],
+    "columns": [
+      "title",
+      "award_id",
+      "output_type",
+      "output_date",
+      "status"
+    ],
+    "states": [
+      "RECORDED",
+      "VERIFIED"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER",
+      "RESEARCHER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "impact",
+    "table": "impact_records",
+    "group": "Performance",
+    "pages": [
+      "Impact"
+    ],
+    "title": "Impact evidence",
+    "description": "Separate a claimed impact from verified evidence. Explain the contribution of the grant and retain the supporting source.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Contributing award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "impact_type",
+        "label": "Impact category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "POLICY",
+          "PRACTICE",
+          "CAPACITY",
+          "COMMUNITY",
+          "HEALTH",
+          "ECONOMIC"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "title",
+        "label": "Impact claim",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "description",
+        "label": "Contribution and evidence narrative",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "evidence_storage_key",
+        "label": "Supporting evidence",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "impact_date",
+        "label": "Impact observed on",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      }
+    ],
+    "columns": [
+      "title",
+      "award_id",
+      "impact_type",
+      "impact_date",
+      "status"
+    ],
+    "states": [
+      "CLAIMED",
+      "UNDER_REVIEW",
+      "VERIFIED"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER",
+      "RESEARCHER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "closeout",
+    "table": "closeout_items",
+    "group": "Performance",
+    "pages": [
+      "Closeout",
+      "Financial Closeout"
+    ],
+    "title": "Award closeout checklist",
+    "description": "Track each actual technical, financial, partner or asset closeout requirement with an owner and completion evidence.",
+    "fields": [
+      {
+        "name": "award_id",
+        "label": "Award",
+        "type": "reference",
+        "help": "",
+        "reference": "awards",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "item_type",
+        "label": "Closeout area",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "TECHNICAL",
+          "FINANCIAL",
+          "PARTNER",
+          "ASSET",
+          "COMPLIANCE",
+          "ARCHIVE"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "title",
+        "label": "Specific closure requirement",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "responsible_role",
+        "label": "Responsible function",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "owner_user_id",
+        "label": "Responsible owner",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "due_date",
+        "label": "Completion due",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "evidence_storage_key",
+        "label": "Completion evidence",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "award_id",
+      "title",
+      "item_type",
+      "owner_user_id",
+      "status"
+    ],
+    "states": [
+      "PENDING",
+      "IN_PROGRESS",
+      "COMPLETE"
+    ],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER",
+      "FINANCE_OFFICER",
+      "FINANCE_APPROVER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "researchers",
+    "table": "researcher_profiles",
+    "group": "People & Organisation",
+    "pages": [
+      "Researcher Profiles"
+    ],
+    "title": "Researcher expertise directory",
+    "description": "Maintain investigator expertise, methods, track record and availability used for funding matches.",
+    "fields": [
+      {
+        "name": "user_id",
+        "label": "Institutional researcher",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "orcid",
+        "label": "ORCID identifier",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 32,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "expertise",
+        "label": "Research expertise",
+        "type": "tags",
+        "help": "Separate research topics with commas",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "_text"
+      },
+      {
+        "name": "methods",
+        "label": "Research methods",
+        "type": "tags",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "_text"
+      },
+      {
+        "name": "career_stage",
+        "label": "Career stage",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "EARLY_CAREER",
+          "MID_CAREER",
+          "SENIOR"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "summary",
+        "label": "Research profile",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "selected_track_record",
+        "label": "Selected grant and publication track record",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "availability_note",
+        "label": "Availability and collaboration interests",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "cv_storage_key",
+        "label": "Current CV",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "active",
+        "label": "Available for matching",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "user_id",
+      "orcid",
+      "career_stage",
+      "expertise",
+      "active"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN",
+      "GRANTS_OFFICER",
+      "RESEARCHER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "partners",
+    "table": "partners",
+    "group": "People & Organisation",
+    "pages": [
+      "Partner Directory"
+    ],
+    "title": "Partner organisations",
+    "description": "Maintain the legal organisation, contacts, capabilities and collaboration details. Due diligence is governed separately.",
+    "fields": [
+      {
+        "name": "name",
+        "label": "Legal organisation name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "country_code",
+        "label": "Country code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "organisation_type",
+        "label": "Organisation type",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "primary_contact_name",
+        "label": "Primary contact",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "primary_contact_email",
+        "label": "Contact email",
+        "type": "email",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "website",
+        "label": "Organisation website",
+        "type": "url",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "capabilities",
+        "label": "Research and delivery capabilities",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "active",
+        "label": "Active partner",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "name",
+      "organisation_type",
+      "country_code",
+      "primary_contact_name",
+      "due_diligence_status"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN",
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "funders",
+    "table": "funders",
+    "group": "People & Organisation",
+    "pages": [
+      "Funder Directory"
+    ],
+    "title": "Funder directory",
+    "description": "Maintain sponsor identity, funding interests, official website and a verified contact.",
+    "fields": [
+      {
+        "name": "name",
+        "label": "Funder name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "country_code",
+        "label": "Country code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "website",
+        "label": "Official website",
+        "type": "url",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "contact_email",
+        "label": "Funding contact email",
+        "type": "email",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 320,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "funding_interests",
+        "label": "Programmes and funding priorities",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "active",
+        "label": "Active funder",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "name",
+      "country_code",
+      "contact_email",
+      "website",
+      "active"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN",
+      "GRANTS_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "institution",
+    "table": "institutional_profiles",
+    "group": "People & Organisation",
+    "pages": [
+      "NHRC Institutional Profile"
+    ],
+    "title": "NHRC institutional profile",
+    "description": "Maintain the actual strategic themes, capabilities, methods and geography used by the institutional fit engine.",
+    "fields": [
+      {
+        "name": "code",
+        "label": "Institution code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "name",
+        "label": "Institution name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "country_code",
+        "label": "Country code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "organisation_type",
+        "label": "Organisation type",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 120,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "mission",
+        "label": "Institutional mission",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "strategic_themes",
+        "label": "Strategic research themes",
+        "type": "tags",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "_text"
+      },
+      {
+        "name": "capabilities",
+        "label": "Delivery capabilities",
+        "type": "tags",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "_text"
+      },
+      {
+        "name": "methods_platforms",
+        "label": "Methods and platforms",
+        "type": "tags",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "_text"
+      },
+      {
+        "name": "populations_contexts",
+        "label": "Populations and settings",
+        "type": "tags",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "_text"
+      },
+      {
+        "name": "geography_keywords",
+        "label": "Geographic context",
+        "type": "tags",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "_text"
+      },
+      {
+        "name": "active",
+        "label": "Active matching profile",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "name",
+      "organisation_type",
+      "country_code",
+      "updated_at"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN",
+      "GRANTS_OFFICER"
+    ],
+    "create": false,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "units",
+    "table": "organisation_units",
+    "group": "Administration",
+    "pages": [
+      "Organisation Structure"
+    ],
+    "title": "Institutional structure",
+    "description": "Maintain organisational units and reporting relationships used for ownership and role assignment.",
+    "fields": [
+      {
+        "name": "code",
+        "label": "Unit code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 64,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "name",
+        "label": "Unit name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "parent_id",
+        "label": "Parent unit",
+        "type": "reference",
+        "help": "",
+        "reference": "units",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "unit_type",
+        "label": "Unit category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "INSTITUTION",
+          "DIVISION",
+          "DEPARTMENT",
+          "UNIT"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 64,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "active",
+        "label": "Active unit",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "code",
+      "name",
+      "parent_id",
+      "unit_type",
+      "active"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "approval-rules",
+    "table": "approval_rules",
+    "group": "Administration",
+    "pages": [
+      "Approval Rules"
+    ],
+    "title": "Approval routing rules",
+    "description": "Maintain routing definitions with role, sequence and a structured condition. These configuration records do not themselves execute legacy approvals.",
+    "fields": [
+      {
+        "name": "code",
+        "label": "Rule code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "name",
+        "label": "Rule name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "entity_type",
+        "label": "Record category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "APPLICATION",
+          "AWARD",
+          "FINANCIAL",
+          "PROCUREMENT"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "required_role_code",
+        "label": "Required authority",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "DIRECTOR",
+          "GRANTS_OFFICER",
+          "FINANCE_APPROVER",
+          "PROCUREMENT_OFFICER",
+          "GOVERNANCE_OFFICER"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "sequence_no",
+        "label": "Routing sequence",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 1,
+        "dbType": "int4"
+      },
+      {
+        "name": "condition_json",
+        "label": "Routing conditions",
+        "type": "json",
+        "help": "Use a JSON object",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "jsonb"
+      },
+      {
+        "name": "active",
+        "label": "Enabled rule",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "name",
+      "entity_type",
+      "required_role_code",
+      "sequence_no",
+      "active"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "delegations",
+    "table": "delegations",
+    "group": "Administration",
+    "pages": [
+      "Delegations & Acting Roles"
+    ],
+    "title": "Acting appointments",
+    "description": "Record a named appointment and its specific scope, validity and reason. It does not automatically grant permissions.",
+    "fields": [
+      {
+        "name": "delegator_id",
+        "label": "Substantive officer",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "delegate_id",
+        "label": "Acting officer",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "scope_code",
+        "label": "Appointment scope",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 160,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "valid_from",
+        "label": "Starts",
+        "type": "datetime-local",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "timestamptz"
+      },
+      {
+        "name": "valid_until",
+        "label": "Ends",
+        "type": "datetime-local",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "timestamptz"
+      },
+      {
+        "name": "reason",
+        "label": "Appointment authority and reason",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "delegator_id",
+      "delegate_id",
+      "scope_code",
+      "valid_from",
+      "valid_until"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "workflows",
+    "table": "workflow_definitions",
+    "group": "Administration",
+    "pages": [
+      "Workflow Configuration"
+    ],
+    "title": "Workflow definitions",
+    "description": "Maintain lifecycle definitions and inspect their ordered steps. Application transitions remain enforced by the controlled pre-award workflow.",
+    "fields": [
+      {
+        "name": "code",
+        "label": "Workflow code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "name",
+        "label": "Workflow name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "entity_type",
+        "label": "Record category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "APPLICATION",
+          "AWARD",
+          "PROCUREMENT",
+          "REPORT"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "active",
+        "label": "Active definition",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "name",
+      "code",
+      "entity_type",
+      "active"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "workflow-steps",
+    "table": "workflow_steps",
+    "group": "Administration",
+    "pages": [
+      "Workflow Configuration"
+    ],
+    "title": "Routing steps",
+    "description": "Specify ordered lifecycle steps, authority and whether an approval is required.",
+    "fields": [
+      {
+        "name": "workflow_id",
+        "label": "Workflow",
+        "type": "reference",
+        "help": "",
+        "reference": "workflows",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "step_order",
+        "label": "Sequence",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "int4"
+      },
+      {
+        "name": "code",
+        "label": "Step code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "name",
+        "label": "Step label",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "required_role_code",
+        "label": "Authority",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "DIRECTOR",
+          "GRANTS_OFFICER",
+          "RESEARCHER",
+          "FINANCE_APPROVER"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "approval_required",
+        "label": "Approval required",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": false,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "workflow_id",
+      "step_order",
+      "name",
+      "required_role_code",
+      "approval_required"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "forms",
+    "table": "form_definitions",
+    "group": "Administration",
+    "pages": [
+      "Forms & Fields"
+    ],
+    "title": "Institutional form definitions",
+    "description": "Maintain versioned field definitions as structured JSON. Operational forms below use their own domain-specific validated fields.",
+    "fields": [
+      {
+        "name": "code",
+        "label": "Form code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "name",
+        "label": "Form name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "entity_type",
+        "label": "Record category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "APPLICATION",
+          "AWARD",
+          "PROCUREMENT",
+          "COMPLIANCE"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "version_no",
+        "label": "Form version",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 1,
+        "dbType": "int4"
+      },
+      {
+        "name": "schema_json",
+        "label": "Field definitions",
+        "type": "json",
+        "help": "Define fields and their validation in a JSON object",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "jsonb"
+      },
+      {
+        "name": "active",
+        "label": "Active form",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "name",
+      "code",
+      "entity_type",
+      "version_no",
+      "active"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "themes",
+    "table": "research_themes",
+    "group": "Administration",
+    "pages": [
+      "Reference Data"
+    ],
+    "title": "Research themes",
+    "description": "Maintain institution-approved research categories for opportunity tagging.",
+    "fields": [
+      {
+        "name": "code",
+        "label": "Theme code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 60,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "name",
+        "label": "Research theme name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "active",
+        "label": "Available for tagging",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "code",
+      "name",
+      "active"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "templates",
+    "table": "templates",
+    "group": "Administration",
+    "pages": [
+      "Templates"
+    ],
+    "title": "Document templates",
+    "description": "Maintain controlled institutional templates with version and actual source document.",
+    "fields": [
+      {
+        "name": "code",
+        "label": "Template code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "name",
+        "label": "Template name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "template_type",
+        "label": "Template purpose",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "PROPOSAL",
+          "BUDGET",
+          "REPORT",
+          "LETTER",
+          "AGREEMENT"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "version_no",
+        "label": "Version",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": 1,
+        "dbType": "int4"
+      },
+      {
+        "name": "description",
+        "label": "When to use this template",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "category",
+        "label": "Category",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "storage_key",
+        "label": "Template file",
+        "type": "document",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "active",
+        "label": "Available for use",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "name",
+      "template_type",
+      "version_no",
+      "active"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "notification-rules",
+    "table": "notification_rules",
+    "group": "Administration",
+    "pages": [
+      "Notification Rules"
+    ],
+    "title": "Reminder rules",
+    "description": "Configure reminder timing and responsible function. Deadline automation is controlled independently in Intelligence and Automation.",
+    "fields": [
+      {
+        "name": "event_type",
+        "label": "Obligation category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "OPPORTUNITY_DEADLINE",
+          "REPORT_DUE",
+          "COMPLIANCE_RENEWAL"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "days_before",
+        "label": "Days before deadline",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "int4"
+      },
+      {
+        "name": "target_role_code",
+        "label": "Responsible role",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GRANTS_OFFICER",
+          "RESEARCHER",
+          "GOVERNANCE_OFFICER",
+          "FINANCE_OFFICER"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "escalation_days",
+        "label": "Escalation window",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "int4"
+      },
+      {
+        "name": "enabled",
+        "label": "Enabled rule",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "event_type",
+      "days_before",
+      "target_role_code",
+      "escalation_days",
+      "enabled"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "calendar-rules",
+    "table": "calendar_rules",
+    "group": "Administration",
+    "pages": [
+      "Calendar Rules"
+    ],
+    "title": "Institutional calendar",
+    "description": "Maintain actual holidays and working-day exceptions; no dates are invented by the calendar screen.",
+    "fields": [
+      {
+        "name": "rule_date",
+        "label": "Date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "name",
+        "label": "Holiday or exception",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "working_day",
+        "label": "Working day",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": false,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "rule_date",
+      "name",
+      "working_day"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "retention",
+    "table": "records_retention",
+    "group": "Administration",
+    "pages": [
+      "Records & Archives"
+    ],
+    "title": "Retention and archive controls",
+    "description": "Identify the record, retention rule, archive date and legal hold before any disposal review.",
+    "fields": [
+      {
+        "name": "entity_type",
+        "label": "Record category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "APPLICATION",
+          "AWARD"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "entity_id",
+        "label": "Record",
+        "type": "reference",
+        "help": "",
+        "reference": "grant_entity",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "retention_rule",
+        "label": "Applicable retention authority",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "archive_date",
+        "label": "Archive date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "disposal_review_date",
+        "label": "Disposal review date",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "hold",
+        "label": "Legal or operational hold",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": false,
+        "dbType": "bool"
+      },
+      {
+        "name": "hold_reason",
+        "label": "Hold reason",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "entity_type",
+      "entity_id",
+      "retention_rule",
+      "disposal_review_date",
+      "status"
+    ],
+    "states": [
+      "ACTIVE",
+      "ARCHIVED",
+      "REVIEW_REQUIRED"
+    ],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "access-reviews",
+    "table": "access_reviews",
+    "group": "Administration",
+    "pages": [
+      "Access Reviews"
+    ],
+    "title": "Access certification",
+    "description": "Review an actual user role and record the named reviewer, due date and certification decision.",
+    "fields": [
+      {
+        "name": "user_id",
+        "label": "User reviewed",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "role_id",
+        "label": "Role reviewed",
+        "type": "reference",
+        "help": "",
+        "reference": "roles",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "scope_type",
+        "label": "Scope category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "INSTITUTION",
+          "AWARD"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 64,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "scope_id",
+        "label": "Scope identifier",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "reviewer_id",
+        "label": "Reviewer",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "due_date",
+        "label": "Review due",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "decision",
+        "label": "Certification decision",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "RETAIN",
+          "REVOKE",
+          "MODIFY"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 40,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "decision_note",
+        "label": "Evidence and decision reason",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "user_id",
+      "role_id",
+      "reviewer_id",
+      "due_date",
+      "decision"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "support",
+    "table": "support_tickets",
+    "group": "Administration",
+    "pages": [
+      "Help & Support"
+    ],
+    "title": "Support requests",
+    "description": "Raise an actionable service request with category, urgency, full description and assigned owner.",
+    "fields": [
+      {
+        "name": "reference",
+        "label": "Ticket reference",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "category",
+        "label": "Service category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "ACCESS",
+          "WORKFLOW",
+          "DATA",
+          "FINANCE",
+          "INTEGRATION",
+          "TECHNICAL"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "priority",
+        "label": "Priority",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "LOW",
+          "NORMAL",
+          "HIGH",
+          "CRITICAL"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 30,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "subject",
+        "label": "Issue summary",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "description",
+        "label": "Steps, expected result and actual result",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "assigned_to",
+        "label": "Assigned support officer",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      }
+    ],
+    "columns": [
+      "reference",
+      "subject",
+      "priority",
+      "assigned_to",
+      "status"
+    ],
+    "states": [
+      "NEW",
+      "IN_PROGRESS",
+      "RESOLVED",
+      "CLOSED"
+    ],
+    "writers": [
+      "ADMIN",
+      "IT_ADMIN",
+      "SUPERADMIN",
+      "GRANTS_OFFICER",
+      "RESEARCHER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "announcements",
+    "table": "system_announcements",
+    "group": "Administration",
+    "pages": [
+      "Institutional Notices"
+    ],
+    "title": "Institutional notices",
+    "description": "Publish a timed internal notice to an audience without sending external messages.",
+    "fields": [
+      {
+        "name": "title",
+        "label": "Notice title",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "message",
+        "label": "Notice text",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "severity",
+        "label": "Notice category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "INFO",
+          "WARNING",
+          "CRITICAL"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 30,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "audience_role_code",
+        "label": "Audience role",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "starts_at",
+        "label": "Visible from",
+        "type": "datetime-local",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "timestamptz"
+      },
+      {
+        "name": "expires_at",
+        "label": "Visible until",
+        "type": "datetime-local",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "timestamptz"
+      },
+      {
+        "name": "active",
+        "label": "Visible notice",
+        "type": "checkbox",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": true,
+        "dbType": "bool"
+      }
+    ],
+    "columns": [
+      "title",
+      "severity",
+      "audience_role_code",
+      "expires_at",
+      "active"
+    ],
+    "states": [],
+    "writers": [
+      "ADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "integrations",
+    "table": "integration_registry",
+    "group": "IT & Security",
+    "pages": [
+      "Integration Health"
+    ],
+    "title": "Integration registry",
+    "description": "Track the configured integration, direction and accountable owner. Connection status is evidence, not a switch that installs an integration.",
+    "fields": [
+      {
+        "name": "code",
+        "label": "Integration code",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "name",
+        "label": "Integration name",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 180,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "integration_type",
+        "label": "System category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "FUNDING",
+          "IDENTITY",
+          "FINANCE",
+          "DOCUMENTS",
+          "EMAIL"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "data_direction",
+        "label": "Data direction",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "INBOUND",
+          "OUTBOUND",
+          "BIDIRECTIONAL"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 40,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "owner_user_id",
+        "label": "Technical owner",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      }
+    ],
+    "columns": [
+      "name",
+      "integration_type",
+      "status",
+      "last_success_at",
+      "last_failure_message"
+    ],
+    "states": [],
+    "writers": [
+      "IT_ADMIN",
+      "SUPERADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "events",
+    "table": "system_events",
+    "group": "IT & Security",
+    "pages": [
+      "Security Events",
+      "Service Monitoring"
+    ],
+    "title": "Operational events",
+    "description": "Review recorded service and security events and acknowledge actual findings.",
+    "fields": [
+      {
+        "name": "event_type",
+        "label": "Event category",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "severity",
+        "label": "Severity",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "INFO",
+          "WARNING",
+          "ERROR",
+          "CRITICAL"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 30,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "component",
+        "label": "Affected service",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 100,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "message",
+        "label": "Finding and evidence",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "created_at",
+      "severity",
+      "component",
+      "message",
+      "acknowledged_at"
+    ],
+    "states": [],
+    "writers": [
+      "IT_ADMIN",
+      "SUPERADMIN"
+    ],
+    "create": false,
+    "filter": {},
+    "stateField": "",
+    "idField": "id"
+  },
+  {
+    "key": "continuity",
+    "table": "business_continuity_plans",
+    "group": "IT & Security",
+    "pages": [
+      "Business Continuity"
+    ],
+    "title": "Business continuity plans",
+    "description": "Document dependencies, recovery objectives, runbooks, test findings and the next rehearsal.",
+    "fields": [
+      {
+        "name": "service_name",
+        "label": "Service or business process",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "owner_user_id",
+        "label": "Continuity owner",
+        "type": "reference",
+        "help": "",
+        "reference": "users",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "critical_dependencies",
+        "label": "Critical dependencies",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "recovery_time_minutes",
+        "label": "Recovery time objective in minutes",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "recovery_point_minutes",
+        "label": "Recovery point objective in minutes",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "recovery_procedure",
+        "label": "Recovery and escalation procedure",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Recovery plan",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "alternate_contact",
+        "label": "Alternate officer and contact",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "last_test_date",
+        "label": "Last rehearsal",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "next_test_date",
+        "label": "Next rehearsal",
+        "type": "date",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "date"
+      },
+      {
+        "name": "test_findings",
+        "label": "Rehearsal findings and follow-up",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      }
+    ],
+    "columns": [
+      "service_name",
+      "owner_user_id",
+      "next_test_date",
+      "status"
+    ],
+    "states": [
+      "DRAFT",
+      "ACTIVE",
+      "REQUIRES_REVIEW"
+    ],
+    "writers": [
+      "IT_ADMIN",
+      "SUPERADMIN"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  },
+  {
+    "key": "opportunities",
+    "table": "opportunities",
+    "group": "Pre-Award",
+    "pages": [
+      "Opportunity intake"
+    ],
+    "title": "Funding opportunity",
+    "description": "Record the actual call, official source, sponsor requirements, funding range and submission window.",
+    "fields": [
+      {
+        "name": "title",
+        "label": "Funding call title",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "funder_id",
+        "label": "Sponsor",
+        "type": "reference",
+        "help": "",
+        "reference": "funders",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "uuid"
+      },
+      {
+        "name": "source_type",
+        "label": "Source category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "MANUAL"
+        ],
+        "section": "Record details",
+        "required": true,
+        "maxLength": 80,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "source_reference",
+        "label": "Call identifier",
+        "type": "text",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 255,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "url",
+        "label": "Official call URL",
+        "type": "url",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "call_type",
+        "label": "Call category",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GRANT_CALL",
+          "FELLOWSHIP",
+          "CONTRACT",
+          "PRIZE"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 40,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "summary",
+        "label": "Purpose and research scope",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "eligibility_criteria",
+        "label": "Published eligibility requirements",
+        "type": "textarea",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "text"
+      },
+      {
+        "name": "keywords",
+        "label": "Research keywords",
+        "type": "tags",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "_text"
+      },
+      {
+        "name": "currency",
+        "label": "Funding currency",
+        "type": "select",
+        "help": "",
+        "reference": "",
+        "choices": [
+          "GHS",
+          "GBP",
+          "USD",
+          "EUR",
+          "CAD",
+          "AUD"
+        ],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 3,
+        "defaultValue": null,
+        "dbType": "varchar"
+      },
+      {
+        "name": "amount_min",
+        "label": "Minimum award value",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "amount_max",
+        "label": "Maximum award value",
+        "type": "number",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Record details",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "numeric"
+      },
+      {
+        "name": "opens_at",
+        "label": "Submission window opens",
+        "type": "datetime-local",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "timestamptz"
+      },
+      {
+        "name": "deadline_at",
+        "label": "Sponsor deadline",
+        "type": "datetime-local",
+        "help": "",
+        "reference": "",
+        "choices": [],
+        "section": "Dates and evidence",
+        "required": false,
+        "maxLength": 12000,
+        "defaultValue": null,
+        "dbType": "timestamptz"
+      }
+    ],
+    "columns": [
+      "title",
+      "funder_id",
+      "deadline_at",
+      "status"
+    ],
+    "states": [],
+    "writers": [
+      "GRANTS_OFFICER",
+      "POST_AWARD_OFFICER"
+    ],
+    "create": true,
+    "filter": {},
+    "stateField": "status",
+    "idField": "id"
+  }
+]

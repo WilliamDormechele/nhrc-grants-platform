@@ -27,8 +27,10 @@ class AdministrationController(private val jdbc: JdbcTemplate) {
     fun audit(@RequestParam(required=false) q:String?):List<Map<String,Any?>>{
         val term="%${q ?: ""}%"
         return jdbc.queryForList("""
-          select a.id,a.occurred_at,a.action,a.entity_type,a.entity_id,a.reason,u.display_name actor
-          from audit_events a left join users u on u.id=a.actor_user_id
+          select a.id,a.occurred_at,a.action,a.entity_type,a.entity_id,a.reason,a.actor,a.before_data,a.after_data from (
+          select e.id,e.occurred_at,e.action,e.entity_type,e.entity_id,e.reason,coalesce(u.display_name,e.actor_subject) actor,e.previous_value before_data,e.new_value after_data from audit_events e left join users u on u.id=e.actor_user_id
+          union all select h.id,h.occurred_at,h.action,h.dataset,h.record_id::text,h.note,u.display_name,h.before_data,h.after_data from operational_history h left join users u on u.id=h.actor_id
+          ) a
           where lower(a.action) like lower(?) or lower(a.entity_type) like lower(?) or lower(coalesce(a.reason,'')) like lower(?)
           order by a.occurred_at desc limit 500
         """.trimIndent(),term,term,term)

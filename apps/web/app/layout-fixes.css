@@ -1,0 +1,138 @@
+/* Keep table edges inside their own scroll region, never outside the card. */
+.panel > .tableWrap,
+.preawardShell .panel .tableWrap,
+.content .panel > .tableWrap {
+  margin: 16px 0 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.record-panel > .tableWrap { margin: 0; }
+.tableWrap {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior-x: contain;
+}
+.tableWrap:focus-visible { outline: 2px solid #187e70; outline-offset: -2px; }
+.tableWrap table { width: 100%; min-width: 640px; table-layout: auto; margin: 0; }
+.tableWrap th,
+.tableWrap td {
+  min-width: 100px;
+  max-width: 30rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  vertical-align: top;
+}
+.tableWrap th:first-child,
+.tableWrap td:first-child { padding-left: 20px; }
+.tableWrap th:last-child,
+.tableWrap td:last-child { padding-right: 20px; }
+.tableWrap td:has(.text-action),
+.tableWrap td:has(.rowActions) { min-width: 160px; }
+.tableWrap .text-action,
+.tableWrap .linkbutton { max-width: 100%; text-align: left; white-space: normal; }
+.text-action svg,.linkbutton svg,.btn svg { flex-shrink: 0; }
+.badge,.stateBadge { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+
+/* A grid/flex item must be allowed to shrink before its child can scroll. */
+.shell,.main,.domain-workspace,.content,.preawardShell,.panel { min-width: 0; }
+.panel { max-width: 100%; }
+.grid > *,.split > *,.dashboard-columns > *,.summaryGrid > *,
+.flow > *,.sourceGrid > *,.form-grid > *,.detail-grid > * { min-width: 0; }
+.page-heading,.workspaceHead,.appSummary,.panelHead { flex-wrap: wrap; }
+.page-heading > div,.workspaceHead > div,.appSummary > div,.panelHead > div,
+.sourceCard > div,.attention-item > span,.summary-link > span { min-width: 0; }
+.page-heading .rowActions { flex-shrink: 1; }
+.btn,.text-action,.linkbutton { white-space: normal; overflow-wrap: anywhere; }
+.itemtitle,.itemmeta,.tiny,.detail,.detail-grid,.feedback,.checks p,
+.step b,.step small,.sourceCard,.recordCard { overflow-wrap: anywhere; }
+.record-toolbar { flex-wrap: wrap; }
+.record-toolbar .search-field { min-width: 0; flex: 1 1 260px; }
+.record-toolbar select { max-width: 100%; }
+.workspace-tabs { flex-wrap: wrap; max-width: 100%; }
+.filters { flex-wrap: wrap; }
+.filters .field { min-width: 0; max-width: 100%; }
+.filters select { max-width: 100%; }
+.sidebar .institution-brand,.sidebar-account { flex-shrink: 0; }
+.sidebar nav { min-height: 0; scroll-padding-block: 12px; }
+.sidebar .institution-brand span,.sidebar-account > div { min-width: 0; }
+.record-dialog > header > div { min-width: 0; }
+.record-dialog input,.record-dialog select,.record-dialog textarea { min-width: 0; max-width: 100%; }
+.pipeline { grid-template-columns: repeat(auto-fit,minmax(min(100%,150px),1fr)); }
+.submission-tracking-summary { scroll-margin-top: 24px; }
+@media (max-width:760px) {
+  .tableWrap th,.tableWrap td { padding: 12px 14px; }
+  .tableWrap th:first-child,.tableWrap td:first-child { padding-left: 16px; }
+  .tableWrap th:last-child,.tableWrap td:last-child { padding-right: 16px; }
+  .record-toolbar .search-field { flex-basis: 100%; }
+  .appSummary .actions { flex-wrap: wrap; }
+  .detail { grid-template-columns: minmax(0,1fr); }
+}
+
+.forms-hub .record-toolbar label {display:grid;gap:6px;flex:1;min-width:180px}
+.forms-hub .record-toolbar input,.forms-hub .record-toolbar select {width:100%}
+.forms-hub td .text-action {display:flex;margin:6px 0}
+.forms-hub td p {margin:6px 0}
+.form-hub-summary {margin-bottom:20px}
+.lifecycle-guide {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;margin:20px 0}
+.lifecycle-guide .panel {margin:0}
+.lifecycle-guide dt {font-weight:600;margin-top:12px;color:#42586b}
+.lifecycle-guide dd {margin:4px 0;overflow-wrap:anywhere}
+.managed-field {border:1px solid #d8e2ea;padding:18px;margin:14px 0;border-radius:4px}
+.forms-hub .record-dialog input[type=checkbox] {width:18px;height:18px;vertical-align:middle}
+.forms-hub .record-dialog > form {padding:24px}
+.forms-hub .record-dialog form > label {display:grid;gap:8px;margin:20px 0}
+.forms-hub .form-actions {display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.forms-hub .record-toolbar input,.forms-hub .record-toolbar select {font:inherit;min-height:42px;padding:10px 12px;border:1px solid #d2dfe8;border-radius:3px;background:#fff;box-sizing:border-box}
+.forms-hub .record-dialog form,.forms-hub .record-dialog fieldset {min-width:0;min-inline-size:0;max-width:100%;box-sizing:border-box}
+.forms-hub .record-dialog .tableWrap {width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+
+/* Usability review: focus, touch targets, flexible reporting controls and readable notes. */
+:where(button,a,input,select,textarea,summary,[tabindex]):focus-visible {outline:3px solid #087e8b;outline-offset:3px;scroll-margin-block:100px 30px}
+.btn,.icon-button {min-height:40px}
+.text-action {min-height:32px;align-items:center}
+input[type=checkbox],.forms-hub .record-dialog input[type=checkbox] {min-width:24px;min-height:24px;accent-color:#0b695b}
+.saved-views {display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:20px 24px;border-bottom:1px solid #e1e8ee;background:#f8fafb}
+.saved-views label {display:grid;gap:6px;min-width:180px;flex:1}
+.saved-views input,.saved-views select {width:100%;padding:10px;border:1px solid #bdccd7;font:inherit;background:#fff;min-height:42px}
+.saved-views>.field-help {flex-basis:100%}
+.sort-column {background:none;border:0;font:inherit;font-weight:600;color:inherit;text-align:left;padding:8px 0;min-height:40px;display:flex;align-items:center;gap:8px;white-space:normal;cursor:pointer}
+.column-picker {position:relative;flex-shrink:0}
+.column-picker summary {cursor:pointer;padding:12px;border:1px solid #bdccd7;border-radius:3px;background:white}
+.column-picker>div {position:absolute;right:0;z-index:15;min-width:260px;max-width:calc(100vw - 72px);max-height:360px;overflow:auto;box-shadow:0 8px 28px #102f4933;background:#fff;border:1px solid #bdccd7;padding:16px}
+.column-picker label {display:flex;gap:12px;align-items:center;padding:6px 0}
+.discard-dialog {position:fixed;z-index:250;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 40px));padding:24px;background:#fff;border:2px solid #0b695b;box-shadow:0 0 0 100vmax #102a43aa;box-sizing:border-box}
+.discard-overlay {position:fixed;inset:0;z-index:250}
+.record-discussion {margin:24px 0;padding-top:20px;border-top:1px solid #d8e2ea}
+.discussion-note {padding:16px;background:#f6f9fa;border-left:3px solid #b9d6d1;margin:12px 0}
+.discussion-note small {display:block;color:#526578;margin:6px 0}
+.discussion-note p {white-space:pre-wrap;overflow-wrap:anywhere}
+.record-discussion form {display:grid;gap:10px;padding:0}
+.record-discussion form .btn {justify-self:start}
+.navigation-backdrop {position:fixed;inset:0;z-index:39;border:0;background:#102a4380}
+.mobile-nav-close {margin:12px 16px}
+@media(min-width:1001px){.navigation-backdrop,.mobile-nav-close{display:none}}
+@media(max-width:700px){.btn,.icon-button,.text-action {min-height:44px}.saved-views {padding:16px}.saved-views label{min-width:100%}.saved-views .btn{flex:1}.column-picker>div{left:0;right:auto}.month-calendar{overflow-x:auto}.calendar-day{min-width:0}.calendar-day button{white-space:normal;overflow-wrap:anywhere}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+.linkbutton,.linkBtn {min-height:32px;display:inline-flex;align-items:center;white-space:normal;text-align:left}
+button.close {min-height:40px;min-width:40px}
+.sidebar :focus-visible {outline-color:#bee7e8}
+@media(max-width:760px){.linkbutton,.linkBtn,button.close{min-height:44px}}
+
+.main .eyebrow,.main .field-help,.application-footer,.application-footer span {color:#4b6073}
+.environment-label {color:#4b6073}
+
+/* Shared action feedback: real request state, inline placement, no focus-stealing overlay. */
+.action-screenreader {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.action-status {display:flex;align-items:flex-start;gap:12px;padding:16px 18px;margin:0 0 18px;border:1px solid #cadbe3;border-left:4px solid #0c6c78;background:#f0f8fa;color:#17364b;border-radius:4px;overflow-wrap:anywhere}
+.action-status>div {flex:1;min-width:0}.action-status>svg {flex-shrink:0;margin-top:2px}.action-status b{font-size:14px}.action-status p{margin:5px 0 0;font-size:13px;line-height:1.5;color:inherit}.action-status.success{background:#edf7f1;border-color:#b6d9c4;border-left-color:#176444;color:#164e37}.action-status.error{background:#fff2f0;border-color:#edc4bd;border-left-color:#aa3026;color:#81271f}.action-status.info{background:#f2f6fa;border-color:#c6d6e4;color:#274b65}.action-status .icon-button{flex-shrink:0;color:inherit;margin:-6px -8px -6px 0}
+.action-elapsed{display:block;font-size:12px;margin-top:8px;color:#405b6d}.action-progress{height:4px;overflow:hidden;background:#ccdee4;border-radius:3px;margin-top:10px}.action-progress i{display:block;height:100%;width:35%;background:#087986;animation:action-travel 1.5s ease-in-out infinite}.action-progress i.determinate{animation:none}.action-spinner{animation:action-spin 1s linear infinite}
+[data-action-pending="true"]{cursor:progress!important;opacity:.8}[data-action-pending="true"]::after{content:"";display:inline-block;vertical-align:middle;width:14px;height:14px;margin-left:8px;flex-shrink:0;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:action-spin 1s linear infinite}
+.record-dialog>.action-feedback-host,.drawer>.action-feedback-host{margin:18px 24px 0}.record-dialog>.action-feedback-host:empty,.drawer>.action-feedback-host:empty{margin:0}
+@keyframes action-spin{to{transform:rotate(360deg)}}@keyframes action-travel{0%{transform:translateX(-100%)}100%{transform:translateX(390%)}}
+@media(max-width:760px){.action-status{padding:13px 14px;gap:10px}.record-dialog>.action-feedback-host,.drawer>.action-feedback-host{margin:12px 16px 0}.action-status .icon-button{min-width:44px;min-height:44px}.action-status b{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.action-spinner,[data-action-pending="true"]::after,.action-progress i{animation:none!important}.action-progress i:not(.determinate){width:100%;opacity:.55}}
