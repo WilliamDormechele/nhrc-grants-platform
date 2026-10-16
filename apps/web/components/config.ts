@@ -10,7 +10,7 @@ export const groups:Group[]=[
 {name:"Research Governance",icon:ShieldCheck,items:["Ethics & Regulatory Links","Conflicts / Declarations","Compliance Calendar","Privacy & Information Governance","Legal & Contracts Review"]},
 {name:"Performance",icon:BarChart3,items:["Reports","Outputs","Impact","Closeout"]},
 {name:"People & Organisation",icon:UsersRound,items:["Researcher Profiles","Partner Directory","Funder Directory","NHRC Institutional Profile"]},
-{name:"Personal",icon:UserRound,items:["My Work","Notifications","Announcements","Role Guide","Calendar"]},
+{name:"Personal",icon:UserRound,items:["My Work","Funding Matches","Notifications","Announcements","Role Guide","Calendar"]},
 {name:"Administration",icon:Settings,items:["Users & Roles","Organisation Structure","Approval Rules","Delegations & Acting Roles","Workflow Configuration","All Forms","Forms & Fields","Reference Data","Templates","Notification Rules","Communications Control","Calendar Rules","Data Import & Export","Records & Archives","Access Reviews","Help & Support","Audit Log","System Settings"]},
 {name:"IT & Security",icon:LockKeyhole,items:["System Health","Service Monitoring","Integration Health","Job Monitor","Backup & Recovery","Security Centre","Security Events","Privileged Activity","Business Continuity","Environment Management","Superadmin Console"]}];
 export {api} from "./client";

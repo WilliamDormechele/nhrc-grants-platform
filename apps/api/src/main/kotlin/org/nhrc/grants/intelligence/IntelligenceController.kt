@@ -96,12 +96,20 @@ class IntelligenceController(private val service:IntelligenceService,private val
       "runs" to jdbc.queryForList("select * from intelligence_automation_runs order by started_at desc limit 20"),
       "forecasts" to service.forecasts(),
       "funding" to jdbc.queryForList("select id,title,status,discovery_review_status,url,deadline_at,institutional_fit_score,fit_rationale,eligibility_status,fit_model_version from opportunities where status not in ('CLOSED','DISMISSED') and (deadline_at is null or deadline_at>now()) order by institutional_fit_score desc nulls last limit 10"),
-      "gates" to listOf(
-        mapOf("name" to "Authenticated institutional roles", "status" to if(environment.getProperty("nhrc.auth.mode","development")=="development") "BLOCKED" else "AUTHENTICATED", "detail" to "Named local UAT accounts, role-based navigation, protected API writes and CSRF checks are active. Institutional acceptance and production identity arrangements remain separate."),
-        mapOf("name" to "Local generative AI", "status" to "HUMAN_REVIEW_REQUIRED", "detail" to "Register summaries are available without a model. Where a local model is connected, its drafts require human review. Check the assistant mode; institutional AI acceptance remains pending."),
-        mapOf("name" to "Donor and accounting integrations", "status" to "NOT_CONNECTED", "detail" to "No live donor submission, bank payment or ERP posting is performed. Email delivery is managed separately in Communications Control."),
-        mapOf("name" to "Institutional acceptance", "status" to "PENDING", "detail" to "Grants, Researcher, Director, Finance, Procurement, Laboratory, Governance and IT journeys require user acceptance.")
-      ))
+      "gates" to readiness())
+    private fun readiness():List<Map<String,String>> {
+      val mail=jdbc.queryForMap("select mode from email_delivery_settings where id=true")["mode"].toString()
+      val reminders=jdbc.queryForObject("select automatic_reminders from communication_settings where id=true",Boolean::class.java)==true
+      val discovery=environment.getProperty("nhrc.discovery.enabled",Boolean::class.java,true)
+      return listOf(
+        mapOf("name" to "Institutional sign-in", "status" to if(environment.getProperty("nhrc.auth.mode","uat")=="development")"DEVELOPMENT_MODE" else "ACTIVE", "detail" to "Named accounts, assigned role permissions and protected writes are enabled. Business approvals require the assigned business role."),
+        mapOf("name" to "External funding discovery", "status" to if(discovery)"ACTIVE" else "PAUSED", "detail" to "Configured official sources are scanned automatically when enabled. Calls are matched against NHRC and researcher expertise; eligibility requires review."),
+        mapOf("name" to "NHRC eGMS Assistant", "status" to "AVAILABLE", "detail" to "Free register summaries are enabled. Generative AI is optional and requires a connected model; summaries do not perform internet searches."),
+        mapOf("name" to "Email notifications and task reminders", "status" to if(mail!="LOCAL_CAPTURE")"ACTIVE" else "CAPTURE_ONLY", "detail" to "Email mode: $mail. Automatic task reminders: ${if(reminders)"enabled" else "paused"}. Superadmin controls channels and role audiences in Communications Control."),
+        mapOf("name" to "Donor submission and accounting connections", "status" to "OPTIONAL_NOT_CONNECTED", "detail" to "No external donor submission, bank payment or ERP posting connection is configured. These optional integrations do not block training workflows."),
+        mapOf("name" to "Training workspace", "status" to "AVAILABLE", "detail" to "Available features are open according to assigned permissions. Institutional production acceptance and external system connections remain separate decisions; this panel is status information, not an access lock.")
+      )
+    }
     @PostMapping("/automation/run") fun run() = service.run("MANUAL")
     @PutMapping("/automation/settings") fun settings(@RequestBody r:AutomationSettings):Map<String,Any?> {
         require(r.lookaheadDays in 1..180 && r.urgentDays in 0..30 && r.urgentDays <= r.lookaheadDays) { "Lookahead must be 1–180 days; urgent window 0–30 days and no greater than lookahead." }

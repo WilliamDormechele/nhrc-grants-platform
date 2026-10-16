@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "matchedResearcherAndFellowNotified": true,
+  "unmatchedInactiveFutureAccountsExcluded": true,
+  "roleUntickHonoured": true,
+  "additionalSelectedStaffRoleHonoured": true,
+  "emailChannelOffHonoured": true,
+  "nonSuperadminPolicyDenied": true,
+  "personalExactRecordLinksVerified": true,
+  "otherUnmatchedRecordDenied": true,
+  "staleAutomaticExpertiseMatchesRemoved": true,
+  "repeatNotificationsSuppressed": true,
+  "researcherAndFellowEmailsCaptured": 2,
+  "externalEmailsSent": 0,
+  "browserChecksPerformed": true,
+  "browserScope": {
+    "environment": "Isolated synthetic local test",
+    "researchFellowLogin": true,
+    "notificationButtonOpensExactMatchedCall": true,
+    "personalScoresAndEvidenceVisible": true,
+    "superadminRoleCheckboxesVisible": true,
+    "superadminDeadlineCheckButtonEnabled": true,
+    "noHostedHumanCredentialsUsed": true,
+    "finalSearchFieldLayoutVerified": {
+      "inputWidth": 560,
+      "labelLayout": "grid",
+      "bottomSpacingPixels": 24
+    }
+  }
+}

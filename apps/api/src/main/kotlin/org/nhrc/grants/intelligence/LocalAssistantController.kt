@@ -38,7 +38,7 @@ class LocalAssistantController(private val intelligence:IntelligenceController,p
        mapOf("id" to "S1","label" to "Open institutional actions (first 12)","group" to "Executive","workspace" to "Intelligence & Automation","evidence" to (snapshot["alerts"] as List<*>).filter { (it as Map<*,*>)["status"]=="OPEN" }.take(12)),
        mapOf("id" to "S2","label" to "Award financial forecasts (first 8)","group" to "Finance & Accounts","workspace" to "Financial Monitoring","evidence" to (snapshot["forecasts"] as List<*>).take(8)),
        mapOf("id" to "S3","label" to "Funding shortlist (first 8)","group" to "Pre-Award","workspace" to "Opportunity Intelligence","evidence" to (snapshot["funding"] as List<*>).take(8)),
-       mapOf("id" to "S4","label" to "Acceptance gates","group" to "Executive","workspace" to "Intelligence & Automation","evidence" to snapshot["gates"])
+       mapOf("id" to "S4","label" to "Feature readiness","group" to "Executive","workspace" to "Intelligence & Automation","evidence" to snapshot["gates"])
      )
      val question=r.question.lowercase()
      val selected=mutableSetOf("S4")

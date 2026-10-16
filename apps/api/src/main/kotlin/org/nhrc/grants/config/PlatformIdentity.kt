@@ -58,6 +58,7 @@ object PlatformAccess {
    return result
  }
  fun allowed(path:String,method:String,roles:Set<String>):Boolean {
+   if("SUPERADMIN" in roles && (path=="/api/intelligence/automation/settings" && method=="PUT" || path=="/api/intelligence/automation/run" && method=="POST"))return true
    if(path=="/api/intelligence/assistant" && method=="POST")return "Executive" in groups(roles)
    if(path.startsWith("/api/auth/") || path.startsWith("/api/operations/")) return true // dataset and record checks are enforced inside the operations controller
    val group=when {

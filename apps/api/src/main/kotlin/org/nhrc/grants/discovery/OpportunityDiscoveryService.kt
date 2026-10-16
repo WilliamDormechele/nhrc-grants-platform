@@ -267,15 +267,20 @@ class OpportunityDiscoveryService(
             val policy=jdbc.queryForList("select * from communication_policies where event_code='OPPORTUNITY_DISCOVERY'").firstOrNull() ?: return@executeWithoutResult
             if(policy["in_app"]!=true && policy["email"]!=true)return@executeWithoutResult
             val recipients=jdbc.queryForList("""select distinct u.id from users u join user_roles ur on ur.user_id=u.id join roles r on r.id=ur.role_id
-                where u.active and r.code in ('GRANTS_OFFICER','DIRECTOR','SUPERADMIN')
+                where u.active
                 and (ur.valid_from is null or ur.valid_from<=now()) and (ur.valid_until is null or ur.valid_until>=now())
-                and ?::jsonb ?? r.code""",UUID::class.java,policy["recipient_roles"].toString())
+                and ?::jsonb ?? r.code
+                and (r.code not in ('RESEARCHER','RESEARCH_FELLOW') or exists(select 1 from opportunity_researcher_matches m join researcher_profiles rp on rp.id=m.researcher_profile_id where m.opportunity_id=? and rp.user_id=u.id and rp.active and m.fit_score>0))""",UUID::class.java,policy["recipient_roles"].toString(),opportunityId)
             if(recipients.isEmpty())return@executeWithoutResult
             val record=jdbc.queryForList("select title,institutional_fit_score,fit_rationale,deadline_at from opportunities where id=? and discovery_review_status<>'REJECTED'",opportunityId).firstOrNull() ?: return@executeWithoutResult
             val claimed=jdbc.update("insert into opportunity_discovery_announcements(opportunity_id,run_id) values (?,?) on conflict do nothing",opportunityId,runId)
             if(claimed==0)return@executeWithoutResult
             val message="Discovered from ${source.name}. NHRC relevance score: ${record["institutional_fit_score"] ?: "Not recorded"}/100. Deadline: ${record["deadline_at"] ?: "Not recorded"}. ${record["fit_rationale"] ?: "No fit rationale recorded."} Human review is required; relevance does not establish eligibility or a funding decision."
-            recipients.forEach {uid->jdbc.update("insert into notifications(user_id,type,title,message,entity_type,entity_id) values (?,'OPPORTUNITY_DISCOVERY',?,?,'opportunities',?)",uid,("New funding call - "+record["title"]).take(255),message,opportunityId)}
+            recipients.forEach {uid->
+                val match=jdbc.queryForList("select m.fit_score,m.rationale from opportunity_researcher_matches m join researcher_profiles rp on rp.id=m.researcher_profile_id where m.opportunity_id=? and rp.user_id=? and rp.active and m.fit_score>0 order by m.fit_score desc limit 1",opportunityId,uid).firstOrNull()
+                val personal=if(match!=null)" Your expertise match: ${match["rationale"]}. Researcher relevance score: ${match["fit_score"]}/100." else ""
+                jdbc.update("insert into notifications(user_id,type,title,message,entity_type,entity_id) values (?,'OPPORTUNITY_DISCOVERY',?,?,'opportunities',?)",uid,("New funding call - "+record["title"]).take(255),message+personal,opportunityId)
+            }
         }
     }
 

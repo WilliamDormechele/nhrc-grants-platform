@@ -101,7 +101,7 @@ export default function CommunicationsWorkspace({name}:{name:string}){
 </section>
 <section className="panel">
 <h2>Lifecycle channel and audience controls</h2>
-<p>Choose each event's channels and eligible recipient roles. Actual lifecycle recipients are determined from the recorded assignment or owner.</p>
+<p>Tick the roles eligible for each event and choose in-app and email channels. For new funding calls, selected staff roles receive new-call alerts; selected Researcher and Research Fellow roles receive alerts only for active expertise matches. Turning a role off stops future alerts and cancels queued emails when that role is no longer eligible. Existing grants and approval assignments remain governed by their owners.</p>
 <div className="tableWrap">
 <table>
 <thead>

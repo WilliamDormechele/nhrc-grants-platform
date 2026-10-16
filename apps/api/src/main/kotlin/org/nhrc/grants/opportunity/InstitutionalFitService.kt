@@ -118,6 +118,8 @@ class InstitutionalFitService(
             )
         }
 
+        // Replace automatic suggestions on reassessment; retain explicit human confirmations.
+        jdbc.update("delete from opportunity_researcher_matches where opportunity_id=? and not human_confirmed",opportunityId)
         var bestResearcher:Researcher?=null
         var bestResearcherTerms:List<String> = emptyList()
         for(researcher in researchers){

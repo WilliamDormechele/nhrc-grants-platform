@@ -15,9 +15,11 @@ class NotificationEmails(private val jdbc:JdbcTemplate,private val mapper:Object
  private fun enc(s:String)=URLEncoder.encode(s,StandardCharsets.UTF_8)
  private val routes=mapOf("opportunities" to ("Pre-Award" to "Funding Register"),"applications" to ("Pre-Award" to "Applications"),"application_assignments" to ("Personal" to "My Work"),"application_reviews" to ("Pre-Award" to "Internal Review"),"approvals" to ("Pre-Award" to "Approvals"),"awards" to ("Award Management" to "Award Register"),"award_handovers" to ("Award Management" to "Award Register"),"award_deliverables" to ("Award Management" to "Deliverables"),"reports" to ("Performance" to "Reports"),"financial_reports" to ("Finance & Accounts" to "Financial Reporting"),"partner_advances" to ("Finance & Accounts" to "Partner Advances"),"procurement_requisitions" to ("Procurement" to "Requisitions"),"purchase_orders" to ("Procurement" to "Purchase Orders"),"contracts" to ("Research Governance" to "Legal & Contracts Review"),"laboratory_maintenance" to ("Laboratory" to "Maintenance & Calibration"),"closeout_items" to ("Performance" to "Closeout"),"compliance_records" to ("Research Governance" to "Ethics & Regulatory Links"))
  private fun tableFor(type:String)=mapOf("APPLICATION" to "applications","ASSIGNMENT" to "application_assignments","APPROVAL" to "approvals","REVIEW" to "application_reviews","DELIVERABLE" to "award_deliverables","REPORT" to "reports","FINANCIAL_REPORT" to "financial_reports","ADVANCE" to "partner_advances","CLOSEOUT" to "closeout_items","PROCUREMENT" to "purchase_orders","LABORATORY" to "laboratory_maintenance","GOVERNANCE" to "compliance_records","CONTRACT" to "contracts","HANDOVER" to "award_handovers")[type]?:type
- fun route(type:String,id:UUID?):Map<String,String>? {
+ private fun matchedFunding(user:UUID,id:UUID)=jdbc.queryForObject("select exists(select 1 from opportunity_researcher_matches m join researcher_profiles rp on rp.id=m.researcher_profile_id where m.opportunity_id=? and rp.user_id=? and rp.active and m.fit_score>0)",Boolean::class.java,id,user)==true
+ fun route(type:String,id:UUID?,user:UUID?=null):Map<String,String>? {
   if(type=="communication_broadcasts")return mapOf("group" to "Personal","workspace" to "Announcements","query" to "")
   val table=tableFor(type)
+  if(table=="opportunities" && id!=null && user!=null && matchedFunding(user,id))return mapOf("group" to "Personal","workspace" to "Funding Matches","record" to id.toString())
   val pair=routes[table]?:return null
   if(id==null)return null
   val node=jdbc.queryForList("select to_jsonb(t)::text data from $table t where id=?",id).firstOrNull()?.let{mapper.readTree(it["data"].toString())}?:return null
@@ -29,13 +31,14 @@ class NotificationEmails(private val jdbc:JdbcTemplate,private val mapper:Object
  private fun scopedRecord(rawType:String,id:UUID,user:UUID,roles:Set<String>):com.fasterxml.jackson.databind.JsonNode? {
   val type=tableFor(rawType)
   if(type !in routes && type!="communication_broadcasts")return null
-  val target=route(type,id)?:return null
+  val target=route(type,id,user)?:return null
   if(target["group"] !in org.nhrc.grants.config.PlatformAccess.groups(roles))return null
   val definitions=catalog.baseDefinitions.filter{it.table==type}
-  if(definitions.isNotEmpty() && definitions.none{catalog.allowed(it.key,roles,false)})return null
+  if(!(type=="opportunities" && target["workspace"]=="Funding Matches") && definitions.isNotEmpty() && definitions.none{catalog.allowed(it.key,roles,false)})return null
   val legacy=when(type){"applications"->"/api/applications/$id";"approvals"->"/api/approvals/$id";"application_reviews"->"/api/pregrant/reviews/$id";else->null}
   if(legacy!=null && !catalog.legacyAllowed(legacy,"GET",roles))return null
   val node=jdbc.queryForList("select to_jsonb(t)::text data from $type t where id=?",id).firstOrNull()?.let{mapper.readTree(it["data"].toString())}?:return null
+  if(type=="opportunities" && target["workspace"]=="Funding Matches")return node
   if(type=="communication_broadcasts")return if("SUPERADMIN" in roles || node.path("audience_roles").any{it.asText() in roles})node else null
   if(roles.all{it in setOf("RESEARCHER","RESEARCH_FELLOW")}) {
    if(listOf("owner_user_id","user_id","lead_researcher_id","researcher_id","reviewer_id","principal_investigator_id","assigned_user_id").any{node.path(it).asText()==user.toString()})return node
@@ -62,7 +65,7 @@ class NotificationEmails(private val jdbc:JdbcTemplate,private val mapper:Object
   }
   val roleCodes=jdbc.queryForList("select distinct r.code from user_roles ur join roles r on r.id=ur.role_id where ur.user_id=? and (ur.valid_from is null or ur.valid_from<=now()) and (ur.valid_until is null or ur.valid_until>=now())",String::class.java,n["user_id"]).toSet()
   val recordNode=if(entityId!=null)scopedRecord(entity,entityId,n["user_id"] as UUID,roleCodes) else null
-  val link=if(recordNode!=null)route(entity,entityId) else null
+  val link=if(recordNode!=null)route(entity,entityId,n["user_id"] as UUID) else null
   if(entity=="communication_broadcasts" && entityId!=null && recordNode!=null){val notice=jdbc.queryForList("select b.expires_at,u.display_name author from communication_broadcasts b join users u on u.id=b.created_by where b.id=?",entityId).firstOrNull();if(notice!=null){details.add("Issued by" to notice["author"].toString());notice["expires_at"]?.let{details.add("Notice expires" to EmailTemplates.timestamp(it))}}}
 
   if(link!=null && entityId!=null) {
