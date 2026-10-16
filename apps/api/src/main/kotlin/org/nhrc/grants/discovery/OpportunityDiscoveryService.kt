@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.nhrc.grants.opportunity.InstitutionalFitService
 import java.time.Duration
@@ -23,7 +24,8 @@ class OpportunityDiscoveryService(
     private val jdbc: JdbcTemplate,
     private val adapters: List<ExternalOpportunityAdapter>,
     private val redis: StringRedisTemplate,
-    private val fitService: InstitutionalFitService
+    private val fitService: InstitutionalFitService,
+    private val transactions: TransactionTemplate
 ) {
     fun sources(): List<Map<String,Any?>> = jdbc.queryForList(
         """select id,code,name,adapter_type,endpoint_url,enabled,schedule_enabled,query_terms,fetch_limit,trust_level,
@@ -149,6 +151,7 @@ class OpportunityDiscoveryService(
                 }
                 saveEvidence(runId,source,item,persisted.opportunityId,validation)
                 fitService.assess(persisted.opportunityId,item.title,item.summary)
+                notifyOpportunity(runId,source,persisted.opportunityId)
             }
             jdbc.update(
                 """update opportunity_discovery_runs set completed_at=now(),status='SUCCESS',fetched_count=?,normalized_count=?,
@@ -157,7 +160,6 @@ class OpportunityDiscoveryService(
             )
             jdbc.update("update opportunity_sources set last_success_at=now(),last_failure_message=null,updated_at=now() where id=?",source.id)
             jdbc.update("update integration_registry set status='HEALTHY',last_success_at=now(),last_failure_message=null where code=?",source.code)
-            if(created>0) notifyGrantsOfficers(runId,source,created)
             DiscoveryRunSummary(runId,source.code,"SUCCESS",result.fetched,result.normalized.size,created,updated,duplicates,rejected)
         } catch(e:Exception){
             val msg=(e.message ?: e.javaClass.simpleName).take(1000)
@@ -246,9 +248,9 @@ class OpportunityDiscoveryService(
     private fun saveEvidence(runId:UUID,source:OpportunitySourceConfig,item:ExternalOpportunity,opportunityId:UUID?,validation:String){
         jdbc.update(
             """insert into opportunity_source_evidence(run_id,source_id,opportunity_id,external_id,title,canonical_url,source_status,
-               validation_status,open_at,close_at,payload_hash,raw_payload) values (?,?,?,?,?,?,?,?,?,?,?,?)""",
+               validation_status,open_at,close_at,payload_hash,raw_payload) select ?,?,?,?,?,?,?,?,?,?,?,? where not exists (select 1 from opportunity_source_evidence where source_id=? and external_id=? and payload_hash=? and validation_status=?)""",
             runId,source.id,opportunityId,item.externalId,item.title,item.canonicalUrl,item.sourceStatus,validation,item.openAt,item.closeAt,
-            sha256(item.rawPayload),item.rawPayload.take(250000)
+            sha256(item.rawPayload),item.rawPayload.take(250000),source.id,item.externalId,sha256(item.rawPayload),validation
         )
     }
 
@@ -260,16 +262,21 @@ class OpportunityDiscoveryService(
         )
     }
 
-    private fun notifyGrantsOfficers(runId:UUID,source:OpportunitySourceConfig,created:Int){
-        val message=created.toString()+" new opportunity record(s) were discovered from "+source.name+" and require NHRC review."
-        jdbc.update(
-            """insert into notifications(user_id,type,title,message,entity_type,entity_id)
-               select distinct ur.user_id,'OPPORTUNITY_DISCOVERY','New funding opportunities discovered',
-                      ?,'DISCOVERY_RUN',?
-               from user_roles ur join roles r on r.id=ur.role_id join users u on u.id=ur.user_id
-               where r.code='GRANTS_OFFICER' and u.active=true and (ur.valid_until is null or ur.valid_until>=now())""",
-            message,runId
-        )
+    private fun notifyOpportunity(runId:UUID,source:OpportunitySourceConfig,opportunityId:UUID) {
+        transactions.executeWithoutResult {
+            val policy=jdbc.queryForList("select * from communication_policies where event_code='OPPORTUNITY_DISCOVERY'").firstOrNull() ?: return@executeWithoutResult
+            if(policy["in_app"]!=true && policy["email"]!=true)return@executeWithoutResult
+            val recipients=jdbc.queryForList("""select distinct u.id from users u join user_roles ur on ur.user_id=u.id join roles r on r.id=ur.role_id
+                where u.active and r.code in ('GRANTS_OFFICER','DIRECTOR','SUPERADMIN')
+                and (ur.valid_from is null or ur.valid_from<=now()) and (ur.valid_until is null or ur.valid_until>=now())
+                and ?::jsonb ?? r.code""",UUID::class.java,policy["recipient_roles"].toString())
+            if(recipients.isEmpty())return@executeWithoutResult
+            val record=jdbc.queryForList("select title,institutional_fit_score,fit_rationale,deadline_at from opportunities where id=? and discovery_review_status<>'REJECTED'",opportunityId).firstOrNull() ?: return@executeWithoutResult
+            val claimed=jdbc.update("insert into opportunity_discovery_announcements(opportunity_id,run_id) values (?,?) on conflict do nothing",opportunityId,runId)
+            if(claimed==0)return@executeWithoutResult
+            val message="Discovered from ${source.name}. NHRC relevance score: ${record["institutional_fit_score"] ?: "Not recorded"}/100. Deadline: ${record["deadline_at"] ?: "Not recorded"}. ${record["fit_rationale"] ?: "No fit rationale recorded."} Human review is required; relevance does not establish eligibility or a funding decision."
+            recipients.forEach {uid->jdbc.update("insert into notifications(user_id,type,title,message,entity_type,entity_id) values (?,'OPPORTUNITY_DISCOVERY',?,?,'opportunities',?)",uid,("New funding call - "+record["title"]).take(255),message,opportunityId)}
+        }
     }
 
     private fun keywords(value:String):List<String> =

@@ -30,6 +30,7 @@ export default function PreAwardWorkspace({name,primary,refresh,initialApplicati
   const [matches,setMatches]=useState<Row[]>([]);
   const [eois,setEois]=useState<Row[]>([]);
   const [approvals,setApprovals]=useState<Row[]>([]);
+  const [discoverySchedule,setDiscoverySchedule]=useState<Row|null>(null);
   const [discoverySources,setDiscoverySources]=useState<Row[]>([]);
   const [discoveryRuns,setDiscoveryRuns]=useState<Row[]>([]);
   const [discoveryEvidence,setDiscoveryEvidence]=useState<Row[]>([]);
@@ -41,7 +42,7 @@ export default function PreAwardWorkspace({name,primary,refresh,initialApplicati
   const [message,setMessage]=useState("");
 
   async function loadBase(){
-    const [o,a,u,r,m,e,p,ds,dr,de]=await Promise.all([
+    const [o,a,u,r,m,e,p,ds,dr,de,schedule]=await Promise.all([
       request("/api/opportunities"),
       request("/api/applications"),
       request("/api/admin/users"),
@@ -51,10 +52,11 @@ export default function PreAwardWorkspace({name,primary,refresh,initialApplicati
       request("/api/approvals"),
       request("/api/opportunity-intelligence/discovery/sources"),
       request("/api/opportunity-intelligence/discovery/runs?limit=12"),
-      request("/api/opportunity-intelligence/discovery/evidence?limit=20")
+      request("/api/opportunity-intelligence/discovery/evidence?limit=20"),
+      request("/api/opportunity-intelligence/discovery/schedule")
     ]);
     setOpportunities(o);setApplications(a);setUsers(u);setResearchers(r);setMatches(m);setEois(e);setApprovals(p);
-    setDiscoverySources(ds);setDiscoveryRuns(dr);setDiscoveryEvidence(de);
+    setDiscoverySchedule(schedule);setDiscoverySources(ds);setDiscoveryRuns(dr);setDiscoveryEvidence(de);
     if(!a.some((app:Row)=>app.id===selectedAppId)){if(initialApplicationId){setSelectedAppId("");setMessage("The linked application is unavailable or outside your assigned work.")}else setSelectedAppId(a[0]?.id||"")}
   }
   async function loadWorkspace(id:string){
@@ -68,6 +70,19 @@ export default function PreAwardWorkspace({name,primary,refresh,initialApplicati
     refresh();
   }
   useEffect(()=>{loadBase().catch(e=>setMessage(e.message))},[primary]);
+  useEffect(()=>{
+    if(name!=="Opportunity Intelligence")return;
+    let stopped=false,loading=false;
+    const timer=setInterval(async()=>{
+      if(loading)return;loading=true;
+      try {
+        const [o,m,s,r,e,schedule]=await Promise.all(["/api/opportunities","/api/opportunity-intelligence/matches","/api/opportunity-intelligence/discovery/sources","/api/opportunity-intelligence/discovery/runs?limit=12","/api/opportunity-intelligence/discovery/evidence?limit=20","/api/opportunity-intelligence/discovery/schedule"].map(path=>serviceRequest(path,{feedback:false})));
+        if(!stopped){setOpportunities(o);setMatches(m);setDiscoverySources(s);setDiscoveryRuns(r);setDiscoveryEvidence(e);setDiscoverySchedule(schedule)}
+      }catch{/* Preserve the current view; the next interval retries. */}finally{loading=false}
+    },60000);
+    return()=>{stopped=true;clearInterval(timer)};
+  },[name]);
+
   useEffect(()=>{let stopped=false;setWorkspace(null);if(selectedAppId&&applications.some(app=>app.id===selectedAppId))request("/api/pregrant/applications/"+selectedAppId+"/workspace").then(r=>{if(!stopped)setWorkspace(r)}).catch(e=>{if(!stopped)setMessage(e.message)});return()=>{stopped=true}},[selectedAppId,applications]);
   useEffect(()=>{if(selectedAppId&&applications.some(app=>app.id===selectedAppId))onApplicationChange?.(selectedAppId)},[selectedAppId,applications]);
   useEffect(()=>{if(applicationOpened)document.getElementById("application-tracking")?.scrollIntoView({behavior:"smooth",block:"start"})},[applicationOpened,selectedAppId]);
@@ -75,7 +90,7 @@ export default function PreAwardWorkspace({name,primary,refresh,initialApplicati
   function openAction(a:Action){setMessage("");setAction(a)}
   const selectedApp=applications.find(x=>x.id===selectedAppId)||null;
   const page=(()=>{
-    if(name==="Opportunity Intelligence")return <OpportunityIntelligence rows={opportunities} matches={matches} eois={eois} sources={discoverySources} runs={discoveryRuns} evidence={discoveryEvidence} act={openAction} run={run} busy={busy}/>;
+    if(name==="Opportunity Intelligence")return <OpportunityIntelligence rows={opportunities} matches={matches} eois={eois} schedule={discoverySchedule} sources={discoverySources} runs={discoveryRuns} evidence={discoveryEvidence} act={openAction} run={run} busy={busy}/>;
     if(name==="Eligibility & Fit")return <Eligibility rows={opportunities} act={openAction}/>;
     if(name==="Applications")return <><Applications rows={applications} act={openAction} select={id=>{setSelectedAppId(id);setApplicationOpened(true)}}/>{applicationOpened&&<section id="application-tracking" className="submission-tracking-summary"><ApplicationHub reloadSelected={()=>loadWorkspace(selectedAppId)} mode="tracking" app={selectedApp} applications={applications} workspace={workspace} select={setSelectedAppId} act={openAction} run={run} users={users} researchers={researchers}/></section>}</>;
     if(name==="Proposal Workspace")return <ApplicationHub reloadSelected={()=>loadWorkspace(selectedAppId)} mode="proposal" app={selectedApp} applications={applications} workspace={workspace} select={setSelectedAppId} act={openAction} run={run} users={users} researchers={researchers}/>;
@@ -100,12 +115,12 @@ export default function PreAwardWorkspace({name,primary,refresh,initialApplicati
   </div>
 }
 
-function OpportunityIntelligence({rows,matches,eois,sources,runs,evidence,act,run,busy}:{rows:Row[];matches:Row[];eois:Row[];sources:Row[];runs:Row[];evidence:Row[];act:(a:Action)=>void;run:(path:string,method:string,body?:any)=>Promise<void>;busy:boolean}){
+function OpportunityIntelligence({rows,matches,eois,schedule,sources,runs,evidence,act,run,busy}:{rows:Row[];matches:Row[];eois:Row[];schedule:Row|null;sources:Row[];runs:Row[];evidence:Row[];act:(a:Action)=>void;run:(path:string,method:string,body?:any)=>Promise<void>;busy:boolean}){
   const [search,setSearch]=useState(""),[queuePage,setQueuePage]=useState(0);const filtered=rows.filter(r=>[r.title,r.funder,r.discovery_source_name].some(v=>String(v||"").toLowerCase().includes(search.toLowerCase())));
   const pending=rows.filter(r=>r.discovery_review_status==="PENDING");
   return <><div className="stats"><Stat label="Calls in review queue" value={rows.length} note="Recent calls; see Funding Register for the full collection"/><Stat label="Awaiting human review" value={pending.length} note="External discoveries requiring confirmation"/><Stat label="High institutional fit" value={rows.filter(r=>Number(r.institutional_fit_score)>=85).length} note="Rules-based relevance score"/><Stat label="Active discovery sources" value={sources.filter(s=>s.enabled).length} note="Approved external sources"/></div>
   <Panel title="Automated discovery" sub="Official external sources are fetched on schedule, normalized, deduplicated and retained with source evidence." action={sessionUser()?.roles.some(r=>["DIRECTOR","GRANTS_OFFICER"].includes(r))?<div className="rowActions"><button className="btn" disabled={busy} onClick={()=>run("/api/opportunity-intelligence/fit/recalculate","POST",{})}>Recalculate fit</button><button className="btn primary" disabled={busy} onClick={()=>run("/api/opportunity-intelligence/discovery/run","POST",{})}>{busy?"Running…":"Run discovery now"}</button></div>:undefined}>
-    <div className="sourceGrid">{sources.map(s=><div className="sourceCard" key={human(s.code)}><div><b>{s.name}</b><span>{human(s.code)} · {pretty(s.adapter_type)} · {human(s.trust_level)}</span><span className="tiny">{s.endpoint_url?new URL(s.endpoint_url).hostname:"Source endpoint not configured"}</span></div><div className="sourceActions">{badge(s.enabled?"ACTIVE":"DISABLED")}<span className="tiny">{s.schedule_enabled?"Scheduled":"Schedule paused"}{s.last_success_at?" · Last success "+date(s.last_success_at):""}</span><div className="rowActions">{sessionUser()?.roles.some(r=>["DIRECTOR","GRANTS_OFFICER"].includes(r))&&<><button className="linkbutton" disabled={busy||!s.enabled} onClick={()=>run("/api/opportunity-intelligence/discovery/run","POST",{sourceCode:s.code})}>Run source</button><button className="linkbutton" onClick={()=>run("/api/opportunity-intelligence/discovery/sources/"+s.code,"PATCH",{enabled:!s.enabled})}>{s.enabled?"Disable":"Enable"}</button><button className="linkbutton" onClick={()=>run("/api/opportunity-intelligence/discovery/sources/"+s.code,"PATCH",{scheduleEnabled:!s.schedule_enabled})}>{s.schedule_enabled?"Pause schedule":"Resume schedule"}</button><ActionButton kind="sourceSettings" className="linkbutton" onClick={()=>act({kind:"sourceSettings",row:s})}>Configure</ActionButton></>}</div></div></div>)}</div>
+    <div className="notice"><strong>Automatic scans: {schedule?.enabled?schedule.label:"Paused"}.</strong> {schedule?.nextRunAt&&<>Next scheduled check: {new Date(schedule.nextRunAt).toLocaleString("en-GB",{timeZone:"Europe/London",timeZoneName:"short"})}. </>}This view refreshes every minute while open. Only enabled sources with their schedule switched on are scanned. New calls receive NHRC fit evidence and remain subject to human eligibility review.</div><div className="sourceGrid">{sources.map(s=><div className="sourceCard" key={human(s.code)}><div><b>{s.name}</b><span>{human(s.code)} · {pretty(s.adapter_type)} · {human(s.trust_level)}</span><span className="tiny">{s.endpoint_url?new URL(s.endpoint_url).hostname:"Source endpoint not configured"}</span></div><div className="sourceActions">{badge(s.enabled?"ACTIVE":"DISABLED")}<span className="tiny">{s.schedule_enabled?"Scheduled":"Schedule paused"}{s.last_success_at?" · Last success "+date(s.last_success_at):""}</span><div className="rowActions">{sessionUser()?.roles.some(r=>["DIRECTOR","GRANTS_OFFICER"].includes(r))&&<><button className="linkbutton" disabled={busy||!s.enabled} onClick={()=>run("/api/opportunity-intelligence/discovery/run","POST",{sourceCode:s.code})}>Run source</button><button className="linkbutton" onClick={()=>run("/api/opportunity-intelligence/discovery/sources/"+s.code,"PATCH",{enabled:!s.enabled})}>{s.enabled?"Disable":"Enable"}</button><button className="linkbutton" onClick={()=>run("/api/opportunity-intelligence/discovery/sources/"+s.code,"PATCH",{scheduleEnabled:!s.schedule_enabled})}>{s.schedule_enabled?"Pause schedule":"Resume schedule"}</button><ActionButton kind="sourceSettings" className="linkbutton" onClick={()=>act({kind:"sourceSettings",row:s})}>Configure</ActionButton></>}</div></div></div>)}</div>
   </Panel>
   <Panel title="Opportunity intelligence review queue" sub="Recent review queue (up to 200 calls). Use Pre-Award, then Funding Register to search and export the complete collection.">
     <div className="filters"><input aria-label="Search recent funding queue" placeholder="Search title, funder or source" value={search} onChange={e=>{setSearch(e.target.value);setQueuePage(0)}}/><span>{filtered.length} matching calls in this queue</span></div><div className="tableWrap" role="region" aria-label="Scrollable records" tabIndex={0}><table><thead><tr><th>Opportunity</th><th>Funder</th><th>Source</th><th>Fit</th><th>Discovery review</th><th>Eligibility</th><th>Deadline</th><th>Actions</th></tr></thead><tbody>{filtered.slice(queuePage*25,(queuePage+1)*25).map(r=><tr key={r.id}><td><b>{r.title}</b><span className="tiny">{/^https?:\/\//.test(r.discovery_external_id||r.source_reference||"")?"External source record":human(r.discovery_external_id||r.source_reference||"")}</span></td><td>{r.funder||"-"}</td><td>{r.discovery_source_name||pretty(r.source_type)}</td><td>{badge((r.institutional_fit_score??"-")+"% fit")}</td><td>{badge(r.discovery_review_status)}</td><td>{badge(r.eligibility_status)}</td><td>{date(r.deadline_at)}</td><td><div className="rowActions">{r.discovery_source_code&&<>{r.discovery_review_status!=="ACCEPTED"&&<ActionButton kind="discoveryReview" className="linkbutton" onClick={()=>act({kind:"discoveryReview",row:{...r,reviewDecision:"ACCEPTED"}})}>Accept discovery</ActionButton>}{r.discovery_review_status!=="REJECTED"&&<ActionButton kind="discoveryReview" className="linkbutton dangerLink" onClick={()=>act({kind:"discoveryReview",row:{...r,reviewDecision:"REJECTED"}})}>Reject</ActionButton>}</>}<ActionButton kind="fit" className="linkbutton" onClick={()=>act({kind:"fit",row:r})}>Review fit</ActionButton>{(!r.discovery_source_code||r.discovery_review_status==="ACCEPTED")&&<><ActionButton kind="eligibility" className="linkbutton" onClick={()=>act({kind:"eligibility",row:r})}>Eligibility</ActionButton><ActionButton kind="application" className="linkbutton" onClick={()=>act({kind:"application",row:r})}>Register application</ActionButton><ActionButton kind="eoi" className="linkbutton" onClick={()=>act({kind:"eoi",row:r})}>EOI</ActionButton></>}</div></td></tr>)}</tbody></table></div><div className="pagination"><span>{filtered.length?queuePage*25+1:0}-{Math.min((queuePage+1)*25,filtered.length)} of {filtered.length}</span><button className="btn small" disabled={!queuePage} onClick={()=>setQueuePage(p=>p-1)}>Previous queue page</button><button className="btn small" disabled={(queuePage+1)*25>=filtered.length} onClick={()=>setQueuePage(p=>p+1)}>Next queue page</button></div>

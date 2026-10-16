@@ -49,7 +49,7 @@ nhrc:
     mode: ${AUTH_MODE:uat}
   discovery:
     enabled: ${OPPORTUNITY_DISCOVERY_ENABLED:true}
-    cron: "${OPPORTUNITY_DISCOVERY_CRON:0 15 6 * * *}"
+    cron: "${OPPORTUNITY_DISCOVERY_CRON:0 */15 * * * *}"
     zone: ${OPPORTUNITY_DISCOVERY_ZONE:UTC}
 
   ai:
