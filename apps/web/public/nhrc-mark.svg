@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="t d">
+<title id="t">NHRC</title><desc id="d">Navrongo Health Research Centre institutional mark</desc>
+<rect width="96" height="96" fill="#ffffff"/>
+<rect x="8" y="18" width="80" height="4" fill="#c63b32"/>
+<rect x="14" y="25" width="68" height="4" fill="#d6b52c"/>
+<rect x="20" y="32" width="56" height="4" fill="#365a9a"/>
+<circle cx="48" cy="58" r="24" fill="#ffffff" stroke="#0b6650" stroke-width="3"/>
+<text x="48" y="51" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#0b6650">GHS</text>
+<text x="48" y="66" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#17352f">NHRC</text>
+<text x="48" y="78" text-anchor="middle" font-family="Arial, sans-serif" font-size="5.8" font-weight="700" fill="#586f68">HEALTH RESEARCH</text>
+</svg>

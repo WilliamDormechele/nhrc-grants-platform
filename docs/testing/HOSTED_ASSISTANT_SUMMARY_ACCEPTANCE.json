@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "role": "SUPERADMIN",
+      "question": "scan for grants",
+      "mode": "REGISTER_SUMMARY",
+      "source": "S3",
+      "passed": true
+    },
+    {
+      "role": "SUPERADMIN",
+      "question": "Which deadlines need attention?",
+      "mode": "REGISTER_SUMMARY",
+      "source": "S1",
+      "passed": true
+    },
+    {
+      "role": "SUPERADMIN",
+      "question": "Explain financial forecasts",
+      "mode": "REGISTER_SUMMARY",
+      "source": "S2",
+      "passed": true
+    },
+    {
+      "role": "SUPERADMIN",
+      "question": "What acceptance gaps remain?",
+      "mode": "REGISTER_SUMMARY",
+      "source": "S4",
+      "passed": true
+    },
+    {
+      "role": "DIRECTOR",
+      "question": "scan for grants",
+      "mode": "REGISTER_SUMMARY",
+      "source": "S3",
+      "passed": true
+    },
+    {
+      "role": "DIRECTOR",
+      "question": "Which deadlines need attention?",
+      "mode": "REGISTER_SUMMARY",
+      "source": "S1",
+      "passed": true
+    },
+    {
+      "role": "DIRECTOR",
+      "question": "Explain financial forecasts",
+      "mode": "REGISTER_SUMMARY",
+      "source": "S2",
+      "passed": true
+    },
+    {
+      "role": "DIRECTOR",
+      "question": "What acceptance gaps remain?",
+      "mode": "REGISTER_SUMMARY",
+      "source": "S4",
+      "passed": true
+    }
+  ],
+  "externalScansEnabled": false,
+  "internalChecksMinutes": 15,
+  "restrictedRoleDenied": true,
+  "browserVisualChecks": false
+}

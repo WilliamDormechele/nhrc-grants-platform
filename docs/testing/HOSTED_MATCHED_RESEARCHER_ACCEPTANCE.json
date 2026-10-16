@@ -1,0 +1,98 @@
+{
+  "status": "PASS",
+  "roles": [
+    {
+      "role": "RESEARCHER",
+      "ownMatches": 6,
+      "exactRecordReadable": true,
+      "missingRecordDenied": true
+    },
+    {
+      "role": "RESEARCH_FELLOW",
+      "ownMatches": 8,
+      "exactRecordReadable": true,
+      "missingRecordDenied": true
+    }
+  ],
+  "scheduledScans": {
+    "enabled": true,
+    "label": "Every 15 minutes",
+    "zone": "UTC",
+    "nextRunAt": "2026-10-16T00:45Z"
+  },
+  "liveSourceRunResults": [
+    {
+      "runId": "8086a7d0-fe39-4c53-9886-6b708e2f632e",
+      "sourceCode": "EU_FUNDING_TENDERS",
+      "status": "SUCCESS",
+      "fetched": 30,
+      "normalized": 25,
+      "created": 0,
+      "updated": 25,
+      "duplicates": 0,
+      "rejected": 0,
+      "error": null
+    },
+    {
+      "runId": "6bc9e0cc-1740-4602-b084-c71789e0ddab",
+      "sourceCode": "GRANTS_GOV",
+      "status": "SUCCESS",
+      "fetched": 30,
+      "normalized": 25,
+      "created": 0,
+      "updated": 25,
+      "duplicates": 0,
+      "rejected": 0,
+      "error": null
+    },
+    {
+      "runId": "bf977d45-89c6-4cb5-b42f-10162518ec27",
+      "sourceCode": "UKRI_FUNDING_FINDER",
+      "status": "SUCCESS",
+      "fetched": 20,
+      "normalized": 8,
+      "created": 0,
+      "updated": 8,
+      "duplicates": 0,
+      "rejected": 0,
+      "error": null
+    }
+  ],
+  "superadminTechnicalAutomationAllowed": true,
+  "superadminBusinessApprovalStillDenied": true,
+  "featureReadiness": [
+    {
+      "name": "Institutional sign-in",
+      "status": "ACTIVE",
+      "detail": "Named accounts, assigned role permissions and protected writes are enabled. Business approvals require the assigned business role."
+    },
+    {
+      "name": "External funding discovery",
+      "status": "ACTIVE",
+      "detail": "Configured official sources are scanned automatically when enabled. Calls are matched against NHRC and researcher expertise; eligibility requires review."
+    },
+    {
+      "name": "NHRC eGMS Assistant",
+      "status": "AVAILABLE",
+      "detail": "Free register summaries are enabled. Generative AI is optional and requires a connected model; summaries do not perform internet searches."
+    },
+    {
+      "name": "Email notifications and task reminders",
+      "status": "ACTIVE",
+      "detail": "Email mode: BREVO. Automatic task reminders: enabled. Superadmin controls channels and role audiences in Communications Control."
+    },
+    {
+      "name": "Donor submission and accounting connections",
+      "status": "OPTIONAL_NOT_CONNECTED",
+      "detail": "No external donor submission, bank payment or ERP posting connection is configured. These optional integrations do not block training workflows."
+    },
+    {
+      "name": "Training workspace",
+      "status": "AVAILABLE",
+      "detail": "Available features are open according to assigned permissions. Institutional production acceptance and external system connections remain separate decisions; this panel is status information, not an access lock."
+    }
+  ],
+  "institutionalAcceptanceNotFabricated": true,
+  "externalSystemsNotPretendedConnected": true,
+  "newResearcherExternalInboxDelivery": "Requires actual researcher addresses; synthetic addresses are blocked in live mode"
+}

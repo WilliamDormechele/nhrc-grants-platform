@@ -1,0 +1,76 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-10-16 00:15:54.389006+00",
+  "apiTests": 70,
+  "newCallsWithFitEvidence": 61,
+  "checks": {
+    "duplicateSourceRecords": 0,
+    "repeatNotifications": 0,
+    "duplicatePayloadEvidence": 0,
+    "missingFitEvidence": 0,
+    "recipientsOutsidePolicy": 0,
+    "failedOrPendingEmails": 0
+  },
+  "actualScheduledRuns": [
+    {
+      "code": "EU_FUNDING_TENDERS",
+      "trigger_type": "SCHEDULED",
+      "status": "SUCCESS",
+      "started_at": "2026-10-16T00:15:00.029126+00:00",
+      "completed_at": "2026-10-16T00:15:07.355788+00:00",
+      "created_count": 0,
+      "updated_count": 25
+    },
+    {
+      "code": "GRANTS_GOV",
+      "trigger_type": "SCHEDULED",
+      "status": "SUCCESS",
+      "started_at": "2026-10-16T00:15:07.368583+00:00",
+      "completed_at": "2026-10-16T00:15:10.251753+00:00",
+      "created_count": 0,
+      "updated_count": 25
+    },
+    {
+      "code": "UKRI_FUNDING_FINDER",
+      "trigger_type": "SCHEDULED",
+      "status": "SUCCESS",
+      "started_at": "2026-10-16T00:15:10.26624+00:00",
+      "completed_at": "2026-10-16T00:15:10.778384+00:00",
+      "created_count": 0,
+      "updated_count": 8
+    }
+  ],
+  "roleEvidence": {
+    "roleChecks": [
+      {
+        "role": "GRANTS_OFFICER",
+        "discoveryNotifications": 61,
+        "allExactRecordRoutesAccessible": true
+      },
+      {
+        "role": "DIRECTOR",
+        "discoveryNotifications": 61,
+        "allExactRecordRoutesAccessible": true
+      },
+      {
+        "role": "SUPERADMIN",
+        "discoveryNotifications": 61,
+        "allExactRecordRoutesAccessible": true
+      }
+    ],
+    "unauthorisedScanDenied": true,
+    "schedule": {
+      "enabled": true,
+      "label": "Every 15 minutes",
+      "zone": "UTC",
+      "nextRunAt": "2026-10-16T00:30Z"
+    },
+    "browserChecksPerformed": false
+  },
+  "liveEmailsSent": 61,
+  "sampleInboxReceiptVerified": true,
+  "sampleEmailIncludesExactFundingRecordLink": true,
+  "sampleEmailIncludesFitEvidenceAndHumanReview": true,
+  "otherRoleMailboxes": "Training addresses remain blocked until replaced with actual user email addresses",
+  "browserVisualChecks": false
+}

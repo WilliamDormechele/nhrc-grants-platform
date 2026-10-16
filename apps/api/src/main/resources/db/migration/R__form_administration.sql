@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS form_administration (
+ form_key VARCHAR(100) PRIMARY KEY,
+ title VARCHAR(180) NOT NULL,
+ description TEXT NOT NULL,
+ enabled BOOLEAN NOT NULL DEFAULT TRUE,
+ readers JSONB NOT NULL,
+ writers JSONB NOT NULL,
+ fields JSONB NOT NULL,
+ revision BIGINT NOT NULL DEFAULT 1,
+ updated_by UUID NOT NULL REFERENCES users(id),
+ updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
