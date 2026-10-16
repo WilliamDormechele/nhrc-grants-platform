@@ -92,14 +92,14 @@ class IntelligenceService(private val jdbc: JdbcTemplate, private val transactio
 class IntelligenceController(private val service:IntelligenceService,private val jdbc:JdbcTemplate,private val environment:Environment) {
     @GetMapping("/overview") fun overview():Map<String,Any> = mapOf(
       "engine" to "NHRC_RULES_V1", "generatedAt" to OffsetDateTime.now().toString(),
-      "settings" to service.settings(), "alerts" to jdbc.queryForList("select * from intelligence_alerts order by case status when 'OPEN' then 0 when 'ACKNOWLEDGED' then 1 else 2 end,due_date limit 500"),
+      "settings" to service.settings(), "discovery" to mapOf("enabled" to environment.getProperty("nhrc.discovery.enabled",Boolean::class.java,true),"cron" to environment.getProperty("nhrc.discovery.cron","0 15 6 * * *"),"zone" to environment.getProperty("nhrc.discovery.zone","UTC")), "alerts" to jdbc.queryForList("select * from intelligence_alerts order by case status when 'OPEN' then 0 when 'ACKNOWLEDGED' then 1 else 2 end,due_date limit 500"),
       "runs" to jdbc.queryForList("select * from intelligence_automation_runs order by started_at desc limit 20"),
       "forecasts" to service.forecasts(),
       "funding" to jdbc.queryForList("select id,title,status,discovery_review_status,url,deadline_at,institutional_fit_score,fit_rationale,eligibility_status,fit_model_version from opportunities where status not in ('CLOSED','DISMISSED') and (deadline_at is null or deadline_at>now()) order by institutional_fit_score desc nulls last limit 10"),
       "gates" to listOf(
         mapOf("name" to "Authenticated institutional roles", "status" to if(environment.getProperty("nhrc.auth.mode","development")=="development") "BLOCKED" else "AUTHENTICATED", "detail" to "Named local UAT accounts, role-based navigation, protected API writes and CSRF checks are active. Institutional acceptance and production identity arrangements remain separate."),
-        mapOf("name" to "Local generative AI", "status" to "HUMAN_REVIEW_REQUIRED", "detail" to "Qwen 3.5 4B drafts answers from a limited register snapshot. Check live model status and factual claims. Document review and institutional AI acceptance remain pending."),
-        mapOf("name" to "Donor and accounting integrations", "status" to "NOT_CONNECTED", "detail" to "No live submission, bank payment, ERP posting or email delivery is performed."),
+        mapOf("name" to "Local generative AI", "status" to "HUMAN_REVIEW_REQUIRED", "detail" to "Register summaries are available without a model. Where a local model is connected, its drafts require human review. Check the assistant mode; institutional AI acceptance remains pending."),
+        mapOf("name" to "Donor and accounting integrations", "status" to "NOT_CONNECTED", "detail" to "No live donor submission, bank payment or ERP posting is performed. Email delivery is managed separately in Communications Control."),
         mapOf("name" to "Institutional acceptance", "status" to "PENDING", "detail" to "Grants, Researcher, Director, Finance, Procurement, Laboratory, Governance and IT journeys require user acceptance.")
       ))
     @PostMapping("/automation/run") fun run() = service.run("MANUAL")
